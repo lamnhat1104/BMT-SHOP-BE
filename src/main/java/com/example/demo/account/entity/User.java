@@ -1,69 +1,39 @@
 package com.example.demo.account.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer userId;
 
-    private String username;
-    private String password;
-    private String email;
-    private String phone;
+    @Column(nullable = false, length = 100)
     private String fullName;
 
-    public Long getId() {
-        return id;
-    }
+    @Column(nullable = false, unique = true, length = 100)
+    private String email;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    private String phone;
+    private String address;
+    private String avatar;
 
-    public String getUsername() {
-        return username;
-    }
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.member;
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    private Boolean isActive = false;
 
-    public String getPassword() {
-        return password;
-    }
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public enum Role {
+        admin, member
     }
 }
