@@ -4,6 +4,6 @@ import com.example.demo.product.dto.ProductResponse;
 import java.util.List;
 
 public interface ProductService {
-    List<ProductResponse> getAllProducts();
+    List<ProductResponse> getAllProducts(String sort, String brand, Integer categoryId);
     ProductResponse getProductById(Integer id);
 }
