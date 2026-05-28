@@ -22,7 +22,10 @@ public class User {
     private String email;
 
     private String phone;
+    @Column(columnDefinition = "TEXT")
     private String address;
+
+    @Column(columnDefinition = "LONGTEXT")
     private String avatar;
 
     @Enumerated(EnumType.STRING)

@@ -19,6 +19,25 @@ public class ProductResponse {
     private Integer stock;
     private String imageUrl;
     private LocalDateTime createdAt;
+    private BrandResponse brand;
+    private CategoryResponse category;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class BrandResponse {
+        private String name;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class CategoryResponse {
+        private Integer id;
+        private String name;
+    }
 
     public static ProductResponse fromEntity(Product product) {
         return ProductResponse.builder()
@@ -29,6 +48,8 @@ public class ProductResponse {
                 .stock(product.getStock())
                 .imageUrl(product.getImageUrl())
                 .createdAt(product.getCreatedAt())
+                .brand(product.getBrand() != null ? new BrandResponse(product.getBrand()) : null)
+                .category(product.getCategoryId() != null ? new CategoryResponse(product.getCategoryId(), product.getCategoryName()) : null)
                 .build();
     }
 }

@@ -17,4 +17,14 @@ public class GlobalExceptionHandler {
         }
         return ResponseEntity.badRequest().body(new ApiResponse(false, "Dữ liệu không hợp lệ: " + errors.toString()));
     }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse> handleRuntimeException(RuntimeException ex) {
+        return ResponseEntity.badRequest().body(new ApiResponse(false, ex.getMessage()));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse> handleException(Exception ex) {
+        return ResponseEntity.status(500).body(new ApiResponse(false, "Đã xảy ra lỗi hệ thống: " + ex.getMessage()));
+    }
 }

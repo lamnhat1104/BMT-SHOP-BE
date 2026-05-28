@@ -20,14 +20,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException(email));
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng với email: " + email));
 
-        LocalAccount local = localAccountRepository.findById(user.getUserId())
-                .orElseThrow(() -> new UsernameNotFoundException(email));
+        java.util.Optional<LocalAccount> localOpt = localAccountRepository.findById(user.getUserId());
+        String passwordHash = localOpt.map(LocalAccount::getPasswordHash).orElse("");
 
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
-                .password(local.getPasswordHash())
+                .password(passwordHash)
                 .roles(user.getRole().name().toUpperCase())
                 .disabled(!user.getIsActive())
                 .build();

@@ -35,6 +35,14 @@ public class Product {
     @Column(name = "image_url") // Khớp với image_url của database
     private String imageUrl;
 
+    private String brand;
+
+    @Column(name = "category_id")
+    private Integer categoryId;
+
+    @Column(name = "category_name")
+    private String categoryName;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false) // Khớp với created_at của database
     private LocalDateTime createdAt;
