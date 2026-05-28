@@ -6,6 +6,12 @@ import com.example.demo.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import com.example.demo.account.entity.User;
+import com.example.demo.account.entity.LocalAccount;
+import com.example.demo.account.repository.UserRepository;
+import com.example.demo.account.repository.LocalAccountRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 @Component
@@ -13,6 +19,9 @@ import java.util.Arrays;
 public class DatabaseSeeder implements CommandLineRunner {
 
     private final ProductRepository productRepository;
+    private final UserRepository userRepository;
+    private final LocalAccountRepository localAccountRepository;
+    private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
 
     @Override
@@ -136,6 +145,45 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .build();
 
             productRepository.saveAll(Arrays.asList(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10));
+        }
+
+        // Seed users if none exist
+        if (userRepository.count() == 0) {
+            // Seed Admin account
+            User admin = new User();
+            admin.setFullName("BMT Shop Admin");
+            admin.setEmail("admin@bmtshop.com");
+            admin.setPhone("0987654321");
+            admin.setAddress("123 Admin Street, Buôn Ma Thuột");
+            admin.setRole(User.Role.admin);
+            admin.setIsActive(true);
+            admin.setCreatedAt(LocalDateTime.now());
+            admin.setUpdatedAt(LocalDateTime.now());
+            User savedAdmin = userRepository.save(admin);
+
+            LocalAccount adminAcct = new LocalAccount();
+            adminAcct.setUser(savedAdmin);
+            adminAcct.setPasswordHash(passwordEncoder.encode("adminpassword"));
+            adminAcct.setIsEmailVerified(true);
+            localAccountRepository.save(adminAcct);
+
+            // Seed Member account
+            User member = new User();
+            member.setFullName("Nguyễn Văn Thành Viên");
+            member.setEmail("member@bmtshop.com");
+            member.setPhone("0977508430");
+            member.setAddress("456 Lê Duẩn, Buôn Ma Thuột");
+            member.setRole(User.Role.member);
+            member.setIsActive(true);
+            member.setCreatedAt(LocalDateTime.now());
+            member.setUpdatedAt(LocalDateTime.now());
+            User savedMember = userRepository.save(member);
+
+            LocalAccount memberAcct = new LocalAccount();
+            memberAcct.setUser(savedMember);
+            memberAcct.setPasswordHash(passwordEncoder.encode("memberpassword"));
+            memberAcct.setIsEmailVerified(true);
+            localAccountRepository.save(memberAcct);
         }
     }
 }
