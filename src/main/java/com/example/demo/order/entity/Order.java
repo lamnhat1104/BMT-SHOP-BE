@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "bmt_orders")
+@Table(name = "orders")
 @Data
 @Builder
 @NoArgsConstructor
@@ -15,6 +15,7 @@ import java.util.List;
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_id")
     private Integer id;
 
     @Column(name = "order_code", unique = true, nullable = false)
@@ -24,13 +25,13 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "full_name", nullable = false)
+    @Column(name = "receiver_name", nullable = false)
     private String fullName;
 
-    @Column(nullable = false)
+    @Column(name = "receiver_phone", nullable = false)
     private String phone;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "shipping_address", nullable = false)
     private String address;
 
     @Column(columnDefinition = "TEXT")
@@ -42,13 +43,13 @@ public class Order {
     @Column(nullable = false)
     private String status; // "Chờ xác nhận", "Đang xử lý", "Đang giao hàng", "Hoàn thành", "Đã hủy"
 
-    @Column(name = "total_amount", nullable = false)
+    @Column(name = "total_price", nullable = false)
     private Double totalAmount;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "order_date", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Transient
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
