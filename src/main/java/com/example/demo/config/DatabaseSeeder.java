@@ -61,7 +61,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .imageUrl("/racket_product_1.png")
                     .brand("Yonex")
                     .categoryId(1)
-                    .categoryName("Vợt Cầu Lông")
                     .build();
 
             Product p2 = Product.builder()
@@ -72,7 +71,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .imageUrl("/shoe_product_1.png")
                     .brand("Lining")
                     .categoryId(2)
-                    .categoryName("Giày Cầu Lông")
                     .build();
 
             Product p3 = Product.builder()
@@ -83,7 +81,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .imageUrl("/racket_product_1.png")
                     .brand("Victor")
                     .categoryId(1)
-                    .categoryName("Vợt Cầu Lông")
                     .build();
 
             Product p4 = Product.builder()
@@ -94,7 +91,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .imageUrl("/shoe_product_1.png")
                     .brand("Yonex")
                     .categoryId(2)
-                    .categoryName("Giày Cầu Lông")
                     .build();
 
             Product p5 = Product.builder()
@@ -105,7 +101,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .imageUrl("/shirt_product_1.png")
                     .brand("Lining")
                     .categoryId(3)
-                    .categoryName("Áo Cầu Lông")
                     .build();
 
             Product p6 = Product.builder()
@@ -116,7 +111,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .imageUrl("/bag_product_1.png")
                     .brand("Victor")
                     .categoryId(4)
-                    .categoryName("Túi Cầu Lông")
                     .build();
 
             Product p7 = Product.builder()
@@ -127,7 +121,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .imageUrl("/shuttlecock_product_1.png")
                     .brand("Victor")
                     .categoryId(5)
-                    .categoryName("Cầu Lông")
                     .build();
 
             Product p8 = Product.builder()
@@ -138,7 +131,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .imageUrl("/accessory_product_1.png")
                     .brand("Yonex")
                     .categoryId(6)
-                    .categoryName("Phụ kiện Cầu Lông")
                     .build();
 
             Product p9 = Product.builder()
@@ -149,7 +141,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .imageUrl("/shoe_product_1.png")
                     .brand("Kawasaki")
                     .categoryId(2)
-                    .categoryName("Giày Cầu Lông")
                     .build();
 
             Product p10 = Product.builder()
@@ -160,7 +151,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .imageUrl("/racket_product_1.png")
                     .brand("Mizuno")
                     .categoryId(1)
-                    .categoryName("Vợt Cầu Lông")
                     .build();
 
             productRepository.saveAll(Arrays.asList(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10));

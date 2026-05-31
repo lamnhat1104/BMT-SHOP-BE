@@ -8,7 +8,7 @@ import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
-    List<Order> findByUserUserIdOrderByCreatedAtDesc(Integer userId);
     Optional<Order> findByOrderCode(String orderCode);
-    List<Order> findAllByOrderByCreatedAtDesc();
+    List<Order> findByUserIdOrderByOrderDateDesc(Integer userId);
+    List<Order> findAllByOrderByOrderDateDesc();
 }

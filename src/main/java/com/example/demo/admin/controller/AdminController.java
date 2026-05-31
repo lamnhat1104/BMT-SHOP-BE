@@ -54,7 +54,7 @@ public class AdminController {
         // Total revenue: Sum of totalAmount for orders NOT "Đã hủy"
         double totalRevenue = allOrders.stream()
                 .filter(o -> !"Đã hủy".equals(o.getStatus()))
-                .mapToDouble(Order::getTotalAmount)
+                .mapToDouble(Order::getTotalPrice)
                 .sum();
 
         // Low stock products: stock <= 10
@@ -65,7 +65,7 @@ public class AdminController {
 
         // Recent orders: top 5 sorted by createdAt desc
         List<OrderResponse> recentOrders = allOrders.stream()
-                .sorted(Comparator.comparing(Order::getCreatedAt).reversed())
+                .sorted(Comparator.comparing(Order::getOrderDate).reversed())
                 .limit(5)
                 .map(OrderResponse::fromEntity)
                 .collect(Collectors.toList());
@@ -74,7 +74,7 @@ public class AdminController {
         Map<String, Double> revenueByStatus = allOrders.stream()
                 .collect(Collectors.groupingBy(
                         Order::getStatus,
-                        Collectors.summingDouble(Order::getTotalAmount)
+                        Collectors.summingDouble(Order::getTotalPrice)
                 ));
 
         // Monthly revenue for the last 6 months
@@ -82,10 +82,10 @@ public class AdminController {
                 .filter(o -> !"Đã hủy".equals(o.getStatus()))
                 .collect(Collectors.groupingBy(
                         o -> {
-                            LocalDateTime dt = o.getCreatedAt();
+                            LocalDateTime dt = o.getOrderDate();
                             return dt.format(DateTimeFormatter.ofPattern("MM/yyyy"));
                         },
-                        Collectors.summingDouble(Order::getTotalAmount)
+                        Collectors.summingDouble(Order::getTotalPrice)
                 ));
 
         // Create list of 6 months ending with current month
@@ -112,59 +112,7 @@ public class AdminController {
         return ResponseEntity.ok(stats);
     }
 
-    // 2. User Management APIs
-    @GetMapping("/users")
-    public ResponseEntity<?> getAllUsers() {
-        checkAdminAccess();
-        return ResponseEntity.ok(userRepository.findAll());
-    }
 
-    @PutMapping("/users/{id}/role")
-    public ResponseEntity<?> updateUserRole(@PathVariable Integer id, @RequestBody Map<String, String> body) {
-        checkAdminAccess();
-        User userToUpdate = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
-
-        // Avoid self-demotion
-        User currentAdmin = getCurrentUser();
-        if (currentAdmin.getUserId().equals(id)) {
-            return ResponseEntity.badRequest().body("Bạn không thể tự thay đổi quyền hạn của chính mình!");
-        }
-
-        String roleStr = body.get("role");
-        try {
-            User.Role role = User.Role.valueOf(roleStr);
-            userToUpdate.setRole(role);
-            userToUpdate.setUpdatedAt(LocalDateTime.now());
-            User saved = userRepository.save(userToUpdate);
-            return ResponseEntity.ok(saved);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Quyền hạn không hợp lệ!");
-        }
-    }
-
-    @PutMapping("/users/{id}/status")
-    public ResponseEntity<?> updateUserStatus(@PathVariable Integer id, @RequestBody Map<String, Boolean> body) {
-        checkAdminAccess();
-        User userToUpdate = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng!"));
-
-        // Avoid self-deactivation
-        User currentAdmin = getCurrentUser();
-        if (currentAdmin.getUserId().equals(id)) {
-            return ResponseEntity.badRequest().body("Bạn không thể tự khóa tài khoản của chính mình!");
-        }
-
-        Boolean isActive = body.get("isActive");
-        if (isActive == null) {
-            return ResponseEntity.badRequest().body("Trạng thái hoạt động không hợp lệ!");
-        }
-
-        userToUpdate.setIsActive(isActive);
-        userToUpdate.setUpdatedAt(LocalDateTime.now());
-        User saved = userRepository.save(userToUpdate);
-        return ResponseEntity.ok(saved);
-    }
 
     // 3. Product Management APIs
     @PostMapping("/products")
@@ -208,7 +156,6 @@ public class AdminController {
         product.setImageUrl(productDetails.getImageUrl());
         product.setBrand(productDetails.getBrand());
         product.setCategoryId(productDetails.getCategoryId());
-        product.setCategoryName(productDetails.getCategoryName());
 
         Product saved = productRepository.save(product);
         return ResponseEntity.ok(ProductResponse.fromEntity(saved));

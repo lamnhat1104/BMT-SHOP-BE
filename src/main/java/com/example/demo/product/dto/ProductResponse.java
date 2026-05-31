@@ -13,22 +13,21 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ProductResponse {
     private Integer id;
+    private Integer categoryId;
     private String name;
     private String description;
+    private String brand;
     private Double price;
     private Integer stock;
+    private Integer discountPercent;
     private String imageUrl;
+    private Integer quantity;
+    private Boolean isFeatured;
+    private String status;
+    private Boolean isDeleted;
     private LocalDateTime createdAt;
-    private BrandResponse brand;
+    private LocalDateTime updatedAt;
     private CategoryResponse category;
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Builder
-    public static class BrandResponse {
-        private String name;
-    }
 
     @Data
     @AllArgsConstructor
@@ -40,16 +39,27 @@ public class ProductResponse {
     }
 
     public static ProductResponse fromEntity(Product product) {
+        if (product == null) return null;
         return ProductResponse.builder()
                 .id(product.getId())
+                .categoryId(product.getCategoryId())
                 .name(product.getName())
                 .description(product.getDescription())
+                .brand(product.getBrand())
                 .price(product.getPrice())
                 .stock(product.getStock())
+                .discountPercent(product.getDiscountPercent())
                 .imageUrl(product.getImageUrl())
+                .quantity(product.getQuantity())
+                .isFeatured(product.getIsFeatured())
+                .status(product.getStatus())
+                .isDeleted(product.getIsDeleted())
                 .createdAt(product.getCreatedAt())
-                .brand(product.getBrand() != null ? new BrandResponse(product.getBrand()) : null)
-                .category(product.getCategoryId() != null ? new CategoryResponse(product.getCategoryId(), product.getCategoryName()) : null)
+                .updatedAt(product.getUpdatedAt())
+                .category(product.getCategory() != null ? CategoryResponse.builder()
+                        .id(product.getCategory().getId())
+                        .name(product.getCategory().getName())
+                        .build() : null)
                 .build();
     }
 }

@@ -21,11 +21,12 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
+    @Column(name = "phone", length = 255)
     private String phone;
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "address", columnDefinition = "TEXT")
     private String address;
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(name = "avatar", columnDefinition = "LONGTEXT")
     private String avatar;
 
     @Enumerated(EnumType.STRING)

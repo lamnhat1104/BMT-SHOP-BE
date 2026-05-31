@@ -8,7 +8,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "orders")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,40 +19,50 @@ public class Order {
     @Column(name = "order_id")
     private Integer id;
 
-    @Column(name = "order_code", unique = true, nullable = false)
+    @Column(name = "order_code", nullable = false, unique = true, length = 50)
     private String orderCode;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false)
+    private Integer userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
-    @Column(name = "receiver_name", nullable = false)
-    private String fullName;
+    @Column(name = "total_price")
+    private Double totalPrice;
 
-    @Column(name = "receiver_phone", nullable = false)
-    private String phone;
+    @Column(name = "status")
+    private String status; // 'pending','confirmed','shipping','completed','cancelled'
 
-    @Column(name = "shipping_address", nullable = false)
-    private String address;
+    @Column(name = "payment_method", length = 50)
+    private String paymentMethod;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "payment_status", columnDefinition = "ENUM('pending', 'paid', 'failed')")
+    private String paymentStatus; // 'pending','paid','failed'
+
+    @Column(name = "receiver_name", length = 100)
+    private String receiverName;
+
+    @Column(name = "receiver_phone", length = 20)
+    private String receiverPhone;
+
+    @Column(name = "shipping_address", length = 255)
+    private String shippingAddress;
+
+    @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
-    @Column(name = "payment_method", nullable = false)
-    private String paymentMethod; // e.g., "COD", "BANK_TRANSFER", "WALLET"
-
-    @Column(nullable = false)
-    private String status; // "Chờ xác nhận", "Đang xử lý", "Đang giao hàng", "Hoàn thành", "Đã hủy"
-
-    @Column(name = "total_price", nullable = false)
-    private Double totalAmount;
-
-    @Column(name = "order_date", nullable = false)
-    private LocalDateTime createdAt;
-
-    @Transient
-    private LocalDateTime updatedAt;
+    @Column(name = "order_date", nullable = false, updatable = false)
+    private LocalDateTime orderDate;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<OrderItem> items;
+    private List<OrderDetail> orderDetails;
+
+    @PrePersist
+    protected void onCreate() {
+        this.orderDate = LocalDateTime.now();
+        if (this.status == null) this.status = "pending";
+        if (this.paymentStatus == null) this.paymentStatus = "pending";
+    }
 }
