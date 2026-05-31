@@ -33,6 +33,25 @@ public class DatabaseSeeder implements CommandLineRunner {
             System.err.println("DatabaseSeeder - Failed to alter columns explicitly: " + e.getMessage());
         }
 
+        // Clean up database: Drop bmt_ tables and drop unused columns added by Hibernate in 'orders' table
+        try {
+            jdbcTemplate.execute("DROP TABLE IF EXISTS bmt_order_items");
+            jdbcTemplate.execute("DROP TABLE IF EXISTS bmt_orders");
+        } catch (Exception e) {
+            System.err.println("Failed to drop bmt_ tables: " + e.getMessage());
+        }
+
+        String[] columnsToDrop = {"address", "full_name", "phone", "total_amount"};
+        for (String col : columnsToDrop) {
+            try {
+                jdbcTemplate.execute("ALTER TABLE orders DROP COLUMN " + col);
+                System.out.println("DatabaseSeeder - Dropped dirty column orders." + col + " successfully.");
+            } catch (Exception ignored) {
+                // Column might not exist, which is fine
+            }
+        }
+
+
         if (productRepository.count() == 0) {
             Product p1 = Product.builder()
                     .name("Vợt Cầu Lông Yonex Astrox 99 Pro (White Tiger)")
