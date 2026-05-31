@@ -19,8 +19,13 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAllProducts(@RequestParam(required = false) Boolean showHidden) {
-        return ResponseEntity.ok(productService.getAllProducts(showHidden));
+    public ResponseEntity<List<ProductResponse>> getAllProducts(
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false) Boolean showHidden
+    ) {
+        return ResponseEntity.ok(productService.getAllProducts(sort, brand, categoryId, showHidden));
     }
 
     @GetMapping("/{id}")

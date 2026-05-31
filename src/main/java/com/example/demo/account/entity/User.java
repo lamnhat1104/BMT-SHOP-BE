@@ -23,7 +23,6 @@ public class User {
 
     @Column(name = "phone", length = 255)
     private String phone;
-
     @Column(name = "address", columnDefinition = "TEXT")
     private String address;
 

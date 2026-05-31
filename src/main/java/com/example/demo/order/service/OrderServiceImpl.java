@@ -12,6 +12,7 @@ import com.example.demo.order.repository.OrderDetailRepository;
 import com.example.demo.order.repository.OrderRepository;
 import com.example.demo.product.entity.Product;
 import com.example.demo.product.repository.ProductRepository;
+import com.example.demo.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -110,6 +112,13 @@ public class OrderServiceImpl implements OrderService {
 
         // Clear user's cart
         cartItemRepository.deleteByUserUserId(user.getUserId());
+
+        // Send Order Confirmation Email
+        try {
+            emailService.sendOrderConfirmationEmail(user.getEmail(), orderCode, totalPrice, request.getFullName());
+        } catch (Exception e) {
+            System.err.println("OrderServiceImpl - Lỗi gửi mail xác nhận đơn hàng: " + e.getMessage());
+        }
 
         return OrderResponse.fromEntity(savedOrder);
     }

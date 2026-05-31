@@ -27,8 +27,19 @@ public class ProductResponse {
     private Boolean isDeleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private CategoryResponse category;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class CategoryResponse {
+        private Integer id;
+        private String name;
+    }
 
     public static ProductResponse fromEntity(Product product) {
+        if (product == null) return null;
         return ProductResponse.builder()
                 .id(product.getId())
                 .categoryId(product.getCategoryId())
@@ -45,7 +56,10 @@ public class ProductResponse {
                 .isDeleted(product.getIsDeleted())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
+                .category(product.getCategory() != null ? CategoryResponse.builder()
+                        .id(product.getCategory().getId())
+                        .name(product.getCategory().getName())
+                        .build() : null)
                 .build();
     }
 }
-

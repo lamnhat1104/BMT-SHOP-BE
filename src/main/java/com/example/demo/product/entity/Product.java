@@ -1,5 +1,6 @@
 package com.example.demo.product.entity;
 
+import com.example.demo.category.entity.Category;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,6 +55,10 @@ public class Product {
 
     @Column(name = "is_deleted")
     private Boolean isDeleted;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", insertable = false, updatable = false)
+    private Category category;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false) // Khớp với created_at của database

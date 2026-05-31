@@ -5,9 +5,9 @@ import com.example.demo.product.dto.ProductSaveRequest;
 import java.util.List;
 
 public interface ProductService {
-    List<ProductResponse> getAllProducts(Boolean showHidden);
+    List<ProductResponse> getAllProducts(String sort, String brand, Integer categoryId, Boolean showHidden);
     default List<ProductResponse> getAllProducts() {
-        return getAllProducts(false);
+        return getAllProducts(null, null, null, false);
     }
     ProductResponse getProductById(Integer id);
     ProductResponse createProduct(ProductSaveRequest request);

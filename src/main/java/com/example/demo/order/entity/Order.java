@@ -1,5 +1,6 @@
 package com.example.demo.order.entity;
 
+import com.example.demo.account.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -23,6 +24,10 @@ public class Order {
 
     @Column(name = "user_id", nullable = false)
     private Integer userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 
     @Column(name = "total_price")
     private Double totalPrice;
