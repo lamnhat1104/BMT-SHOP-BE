@@ -49,6 +49,7 @@ public class Product {
     @Column(name = "is_featured")
     private Boolean isFeatured;
 
+    @Column(name = "status", columnDefinition = "ENUM('available', 'out_of_stock')")
     private String status;
 
     @Column(name = "is_deleted")

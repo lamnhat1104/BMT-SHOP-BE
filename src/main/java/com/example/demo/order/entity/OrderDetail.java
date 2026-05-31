@@ -33,7 +33,7 @@ public class OrderDetail {
 
     private Integer quantity;
 
-    @Column(name = "unit_price", nullable = false)
+    @Column(name = "unit_price", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private Double unitPrice;
 
     private String details;

@@ -21,8 +21,13 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
+    @Column(name = "phone", length = 255)
     private String phone;
+
+    @Column(name = "address", columnDefinition = "TEXT")
     private String address;
+
+    @Column(name = "avatar", columnDefinition = "LONGTEXT")
     private String avatar;
 
     @Enumerated(EnumType.STRING)

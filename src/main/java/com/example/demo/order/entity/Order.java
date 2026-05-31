@@ -33,7 +33,7 @@ public class Order {
     @Column(name = "payment_method", length = 50)
     private String paymentMethod;
 
-    @Column(name = "payment_status")
+    @Column(name = "payment_status", columnDefinition = "ENUM('pending', 'paid', 'failed')")
     private String paymentStatus; // 'pending','paid','failed'
 
     @Column(name = "receiver_name", length = 100)
