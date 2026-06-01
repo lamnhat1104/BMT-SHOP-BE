@@ -43,6 +43,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/auth/**", "/login/**", "/oauth2/**").permitAll()
                     .requestMatchers("/api/products", "/api/products/**").permitAll()
+                    .requestMatchers("/api/admin/crawler/**").permitAll()
                     .requestMatchers("/api/orders/track").permitAll()
                     .anyRequest().authenticated()
             )

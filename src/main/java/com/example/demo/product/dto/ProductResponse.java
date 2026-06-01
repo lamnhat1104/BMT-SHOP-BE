@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -28,6 +30,8 @@ public class ProductResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private CategoryResponse category;
+    private List<ImageResponse> images;
+    private List<VariantResponse> variants;
 
     @Data
     @AllArgsConstructor
@@ -36,6 +40,32 @@ public class ProductResponse {
     public static class CategoryResponse {
         private Integer id;
         private String name;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class ImageResponse {
+        private Integer id;
+        private String imageUrl;
+        private Boolean isMain;
+        private String color;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class VariantResponse {
+        private Integer id;
+        private String size;
+        private String color;
+        private String weight;
+        private String grip;
+        private Double price;
+        private Integer stock;
+        private String sku;
     }
 
     public static ProductResponse fromEntity(Product product) {
@@ -60,6 +90,26 @@ public class ProductResponse {
                         .id(product.getCategory().getId())
                         .name(product.getCategory().getName())
                         .build() : null)
+                .images(product.getImages() != null ? product.getImages().stream()
+                        .map(img -> ImageResponse.builder()
+                                .id(img.getId())
+                                .imageUrl(img.getImageUrl())
+                                .isMain(img.getIsMain())
+                                .color(img.getColor())
+                                .build())
+                        .collect(Collectors.toList()) : java.util.Collections.emptyList())
+                .variants(product.getVariants() != null ? product.getVariants().stream()
+                        .map(var -> VariantResponse.builder()
+                                .id(var.getId())
+                                .size(var.getSize())
+                                .color(var.getColor())
+                                .weight(var.getWeight())
+                                .grip(var.getGrip())
+                                .price(var.getPrice())
+                                .stock(var.getStock())
+                                .sku(var.getSku())
+                                .build())
+                        .collect(Collectors.toList()) : java.util.Collections.emptyList())
                 .build();
     }
 }
