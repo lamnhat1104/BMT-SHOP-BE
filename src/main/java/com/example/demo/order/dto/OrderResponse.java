@@ -26,6 +26,7 @@ public class OrderResponse {
     private String paymentStatus;
     private String status;
     private Double totalAmount;
+    private String paymentUrl;
     private LocalDateTime createdAt;
     private List<OrderDetailResponse> items;
 
@@ -40,19 +41,19 @@ public class OrderResponse {
         }
 
         return OrderResponse.builder()
-                .id(order.getId())
-                .orderCode(order.getOrderCode())
-                .userId(order.getUserId())
-                .fullName(order.getReceiverName())
-                .phone(order.getReceiverPhone())
-                .address(order.getShippingAddress())
-                .notes(order.getNotes())
-                .paymentMethod(order.getPaymentMethod())
-                .paymentStatus(order.getPaymentStatus())
-                .status(order.getStatus())
-                .totalAmount(order.getTotalPrice())
-                .createdAt(order.getOrderDate())
-                .items(listItems)
-                .build();
+            .id(order.getId())
+            .orderCode(order.getOrderCode())
+            .userId(order.getUserId())
+            .fullName(order.getReceiverName())
+            .phone(order.getReceiverPhone())
+            .address(order.getShippingAddress())
+            .notes(order.getNotes())
+            .paymentMethod(order.getPaymentMethod())
+            .paymentStatus(order.getPaymentStatus())
+            .status(order.getStatus())
+            .totalAmount(order.getTotalPrice())
+            .createdAt(order.getOrderDate())
+            .items(listItems)
+            .build();
     }
 }

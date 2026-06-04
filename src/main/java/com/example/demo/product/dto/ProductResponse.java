@@ -66,10 +66,32 @@ public class ProductResponse {
         private Double price;
         private Integer stock;
         private String sku;
+        private List<ImageResponse> images;
     }
 
     public static ProductResponse fromEntity(Product product) {
         if (product == null) return null;
+
+        List<ImageResponse> uniqueImages = new java.util.ArrayList<>();
+        java.util.Set<String> seenUrls = new java.util.HashSet<>();
+        if (product.getVariants() != null) {
+            for (com.example.demo.product.entity.ProductVariant v : product.getVariants()) {
+                if (v.getImages() != null) {
+                    for (com.example.demo.product.entity.ProductImage img : v.getImages()) {
+                        if (!seenUrls.contains(img.getImageUrl())) {
+                            seenUrls.add(img.getImageUrl());
+                            uniqueImages.add(ImageResponse.builder()
+                                    .id(img.getId())
+                                    .imageUrl(img.getImageUrl())
+                                    .isMain(img.getIsMain())
+                                    .color(img.getColor())
+                                    .build());
+                        }
+                    }
+                }
+            }
+        }
+
         return ProductResponse.builder()
                 .id(product.getId())
                 .categoryId(product.getCategoryId())
@@ -90,14 +112,7 @@ public class ProductResponse {
                         .id(product.getCategory().getId())
                         .name(product.getCategory().getName())
                         .build() : null)
-                .images(product.getImages() != null ? product.getImages().stream()
-                        .map(img -> ImageResponse.builder()
-                                .id(img.getId())
-                                .imageUrl(img.getImageUrl())
-                                .isMain(img.getIsMain())
-                                .color(img.getColor())
-                                .build())
-                        .collect(Collectors.toList()) : java.util.Collections.emptyList())
+                .images(uniqueImages)
                 .variants(product.getVariants() != null ? product.getVariants().stream()
                         .map(var -> VariantResponse.builder()
                                 .id(var.getId())
@@ -108,6 +123,14 @@ public class ProductResponse {
                                 .price(var.getPrice())
                                 .stock(var.getStock())
                                 .sku(var.getSku())
+                                .images(var.getImages() != null ? var.getImages().stream()
+                                        .map(img -> ImageResponse.builder()
+                                                .id(img.getId())
+                                                .imageUrl(img.getImageUrl())
+                                                .isMain(img.getIsMain())
+                                                .color(img.getColor())
+                                                .build())
+                                        .collect(Collectors.toList()) : java.util.Collections.emptyList())
                                 .build())
                         .collect(Collectors.toList()) : java.util.Collections.emptyList())
                 .build();

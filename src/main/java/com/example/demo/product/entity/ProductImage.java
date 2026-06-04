@@ -15,8 +15,11 @@ public class ProductImage {
     @Column(name = "image_id")
     private Integer id;
 
-    @Column(name = "product_id", nullable = false)
+    @Column(name = "product_id")
     private Integer productId;
+
+    @Column(name = "variant_id")
+    private Integer variantId;
 
     @Column(name = "image_url", nullable = false)
     private String imageUrl;

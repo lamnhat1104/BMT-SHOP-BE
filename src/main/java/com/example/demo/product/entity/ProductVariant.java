@@ -2,6 +2,7 @@ package com.example.demo.product.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.List;
 
 @Entity
 @Table(name = "product_variants")
@@ -32,4 +33,8 @@ public class ProductVariant {
     private Integer stock;
 
     private String sku;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "variant_id")
+    private List<ProductImage> images;
 }

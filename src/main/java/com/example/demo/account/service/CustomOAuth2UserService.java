@@ -47,25 +47,37 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         final String picture = tempPicture;
 
-        User user = userRepository.findByEmail(email).orElseGet(() -> {
-            User newUser = new User();
-            newUser.setEmail(email);
-            newUser.setFullName(name);
-            newUser.setAvatar(picture);
-            newUser.setIsActive(true);
-            return userRepository.save(newUser);
-        });
-
         SocialAccount.Provider providerEnum = clientRegistrationId.equals("google")
                 ? SocialAccount.Provider.google
                 : SocialAccount.Provider.facebook;
-        
-        if (!socialAccountRepository.findByProviderAndProviderId(providerEnum, providerId).isPresent()) {
+
+        User user;
+        java.util.Optional<SocialAccount> existingSocial = socialAccountRepository.findByProviderAndProviderId(providerEnum, providerId);
+        if (existingSocial.isPresent()) {
+            user = existingSocial.get().getUser();
+            if (name != null && !name.trim().isEmpty() && !name.equals(user.getFullName())) {
+                user.setFullName(name);
+                userRepository.save(user);
+            }
+        } else {
+            if (email == null || email.trim().isEmpty()) {
+                email = providerId + "@" + clientRegistrationId + ".com";
+            }
+            final String finalEmail = email;
+            user = userRepository.findByEmail(finalEmail).orElseGet(() -> {
+                User newUser = new User();
+                newUser.setEmail(finalEmail);
+                newUser.setFullName(name != null && !name.trim().isEmpty() ? name : (clientRegistrationId.equals("google") ? "Google User" : "Facebook User"));
+                newUser.setAvatar(picture);
+                newUser.setIsActive(true);
+                return userRepository.save(newUser);
+            });
+
             SocialAccount socialAccount = new SocialAccount();
             socialAccount.setUser(user);
             socialAccount.setProvider(providerEnum);
             socialAccount.setProviderId(providerId);
-            socialAccount.setEmail(email);
+            socialAccount.setEmail(finalEmail);
             socialAccountRepository.save(socialAccount);
         }
 

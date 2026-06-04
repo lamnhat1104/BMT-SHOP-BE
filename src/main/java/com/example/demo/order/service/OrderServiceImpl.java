@@ -22,6 +22,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import com.example.demo.payment.VNPAYConfig;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -66,12 +70,14 @@ public class OrderServiceImpl implements OrderService {
         // Generate a unique order code, e.g. BMT123456
         String orderCode = generateOrderCode();
 
+        boolean isVNPay = "VNPAY".equalsIgnoreCase(request.getPaymentMethod());
+
         // Create order
         Order order = Order.builder()
                 .orderCode(orderCode)
                 .userId(user.getUserId())
                 .totalPrice(totalPrice)
-                .status("Chờ xác nhận") // Match frontend status badge display
+                .status(isVNPay ? "Chờ thanh toán" : "Chờ xác nhận") // Match frontend status badge display
                 .paymentMethod(request.getPaymentMethod())
                 .paymentStatus("pending")
                 .receiverName(request.getFullName())
@@ -113,14 +119,32 @@ public class OrderServiceImpl implements OrderService {
         // Clear user's cart
         cartItemRepository.deleteByUserUserId(user.getUserId());
 
-        // Send Order Confirmation Email
-        try {
-            emailService.sendOrderConfirmationEmail(user.getEmail(), orderCode, totalPrice, request.getFullName());
-        } catch (Exception e) {
-            System.err.println("OrderServiceImpl - Lỗi gửi mail xác nhận đơn hàng: " + e.getMessage());
+        // Send Order Confirmation Email (Only immediately for COD, VNPay sends on success callback)
+        if (!isVNPay) {
+            try {
+                emailService.sendOrderConfirmationEmail(user.getEmail(), orderCode, totalPrice, request.getFullName());
+            } catch (Exception e) {
+                System.err.println("OrderServiceImpl - Lỗi gửi mail xác nhận đơn hàng: " + e.getMessage());
+            }
         }
 
-        return OrderResponse.fromEntity(savedOrder);
+        OrderResponse response = OrderResponse.fromEntity(savedOrder);
+        
+        if (isVNPay) {
+            String ipAddress = "127.0.0.1";
+            try {
+                ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+                if (attributes != null) {
+                    ipAddress = VNPAYConfig.getIpAddress(attributes.getRequest());
+                }
+            } catch (Exception e) {
+                // Ignore fallback for testing
+            }
+            String paymentUrl = VNPAYConfig.createPaymentUrl(orderCode, totalPrice, ipAddress);
+            response.setPaymentUrl(paymentUrl);
+        }
+
+        return response;
     }
 
     @Override
