@@ -31,14 +31,15 @@ public class PaymentController {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final VNPAYConfig vnpayConfig;
 
     @GetMapping("/vnpay-callback")
     @Transactional
     public void vnpayCallback(HttpServletRequest request, HttpServletResponse response) throws IOException {
         log.info("Nhận callback từ VNPay");
         
-        // Lấy tất cả tham số từ VNPay gửi về
-        Map<String, String> fields = new HashMap<>();
+        // Lấy tất cả tham số từ VNPay gửi về bằng TreeMap để tự động sắp xếp
+        Map<String, String> fields = new TreeMap<>();
         for (Enumeration<String> params = request.getParameterNames(); params.hasMoreElements();) {
             String fieldName = params.nextElement();
             String fieldValue = request.getParameter(fieldName);
@@ -48,36 +49,36 @@ public class PaymentController {
         }
 
         String vnp_SecureHash = request.getParameter("vnp_SecureHash");
-        if (fields.containsKey("vnp_SecureHashType")) {
-            fields.remove("vnp_SecureHashType");
-        }
-        if (fields.containsKey("vnp_SecureHash")) {
-            fields.remove("vnp_SecureHash");
-        }
+        fields.remove("vnp_SecureHashType");
+        fields.remove("vnp_SecureHash");
 
-        // Sắp xếp keys và tính toán signature để đối chiếu
-        List<String> fieldNames = new ArrayList<>(fields.keySet());
-        Collections.sort(fieldNames);
+        // Tính toán signature để đối chiếu
         StringBuilder hashData = new StringBuilder();
-        Iterator<String> itr = fieldNames.iterator();
-        while (itr.hasNext()) {
-            String fieldName = itr.next();
-            String fieldValue = fields.get(fieldName);
-            if ((fieldValue != null) && (fieldValue.length() > 0)) {
+        boolean first = true;
+        for (Map.Entry<String, String> entry : fields.entrySet()) {
+            String fieldName = entry.getKey();
+            String fieldValue = entry.getValue();
+
+            if (fieldValue != null && !fieldValue.isEmpty()) {
+                if (!first) {
+                    hashData.append('&');
+                }
                 hashData.append(fieldName);
-                hashData.append("=");
-                try {
-                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8.toString()).replace("+", "%20"));
-                } catch (Exception e) {
-                    // ignore
-                }
-                if (itr.hasNext()) {
-                    hashData.append("&");
-                }
+                hashData.append('=');
+                hashData.append(fieldValue);
+                first = false;
             }
         }
 
-        String signValue = VNPAYConfig.hmacSHA512(VNPAYConfig.vnp_HashSecret, hashData.toString());
+        String signValue =
+                vnpayConfig.hmacSHA512(
+                        vnpayConfig.getHashSecret(),
+                        hashData.toString()
+                );
+
+        log.info("Callback HashData: {}", hashData);
+        log.info("Generated Sign: {}", signValue);
+        log.info("VNPay Sign: {}", vnp_SecureHash);
         
         String orderCode = request.getParameter("vnp_TxnRef");
         String responseCode = request.getParameter("vnp_ResponseCode");
@@ -85,7 +86,7 @@ public class PaymentController {
         // Mặc định chuyển hướng về frontend (cổng mặc định là 5173 cho Vite)
         String frontendRedirectUrl = "http://localhost:5173/checkout";
         
-        if (signValue.equals(vnp_SecureHash)) {
+        if (signValue.equalsIgnoreCase(vnp_SecureHash)) {
             // Chữ ký hợp lệ
             Optional<Order> orderOpt = orderRepository.findByOrderCode(orderCode);
             if (orderOpt.isPresent()) {
@@ -133,7 +134,7 @@ public class PaymentController {
                 return;
             }
         } else {
-            log.error("Sai chữ ký bảo mật từ VNPay callback");
+            log.error("Sai chữ ký bảo mật từ VNPay callback. hashData calculated: '{}', signValue calculated: '{}', vnp_SecureHash received: '{}'", hashData.toString(), signValue, vnp_SecureHash);
             response.sendRedirect(frontendRedirectUrl + "?vnpay=failed&error=invalid_signature");
             return;
         }

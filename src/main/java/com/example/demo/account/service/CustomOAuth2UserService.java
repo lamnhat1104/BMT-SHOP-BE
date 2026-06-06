@@ -52,9 +52,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 : SocialAccount.Provider.facebook;
 
         User user;
+        String finalEmail;
         java.util.Optional<SocialAccount> existingSocial = socialAccountRepository.findByProviderAndProviderId(providerEnum, providerId);
         if (existingSocial.isPresent()) {
             user = existingSocial.get().getUser();
+            finalEmail = user.getEmail();
             if (name != null && !name.trim().isEmpty() && !name.equals(user.getFullName())) {
                 user.setFullName(name);
                 userRepository.save(user);
@@ -63,7 +65,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             if (email == null || email.trim().isEmpty()) {
                 email = providerId + "@" + clientRegistrationId + ".com";
             }
-            final String finalEmail = email;
+            finalEmail = email;
             user = userRepository.findByEmail(finalEmail).orElseGet(() -> {
                 User newUser = new User();
                 newUser.setEmail(finalEmail);
@@ -81,6 +83,21 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             socialAccountRepository.save(socialAccount);
         }
 
-        return oAuth2User;
+        String userNameAttributeName = userRequest.getClientRegistration()
+                .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
+        if (userNameAttributeName == null || userNameAttributeName.trim().isEmpty()) {
+            userNameAttributeName = clientRegistrationId.equals("google") ? "sub" : "id";
+        }
+
+        java.util.Map<String, Object> customAttributes = new java.util.HashMap<>(oAuth2User.getAttributes());
+        customAttributes.put("email", finalEmail);
+        customAttributes.put("provider", clientRegistrationId);
+        customAttributes.put("providerId", providerId);
+
+        return new org.springframework.security.oauth2.core.user.DefaultOAuth2User(
+                oAuth2User.getAuthorities(),
+                customAttributes,
+                userNameAttributeName
+        );
     }
 }

@@ -36,6 +36,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final VNPAYConfig vnpayConfig;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -135,12 +136,12 @@ public class OrderServiceImpl implements OrderService {
             try {
                 ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
                 if (attributes != null) {
-                    ipAddress = VNPAYConfig.getIpAddress(attributes.getRequest());
+                    ipAddress = vnpayConfig.getIpAddress(attributes.getRequest());
                 }
             } catch (Exception e) {
                 // Ignore fallback for testing
             }
-            String paymentUrl = VNPAYConfig.createPaymentUrl(orderCode, totalPrice, ipAddress);
+            String paymentUrl = vnpayConfig.createPaymentUrl(orderCode, totalPrice, ipAddress);
             response.setPaymentUrl(paymentUrl);
         }
 
