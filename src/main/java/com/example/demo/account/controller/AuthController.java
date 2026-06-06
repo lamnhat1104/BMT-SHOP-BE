@@ -1,7 +1,9 @@
 package com.example.demo.account.controller;
 
 import com.example.demo.account.dto.*;
+import com.example.demo.account.entity.SocialAccount;
 import com.example.demo.account.entity.User;
+import com.example.demo.account.repository.SocialAccountRepository;
 import com.example.demo.account.repository.UserRepository;
 import com.example.demo.account.service.AuthService;
 import com.example.demo.account.service.JwtService;
@@ -25,6 +27,7 @@ public class AuthController {
     private final AuthService authService;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final SocialAccountRepository socialAccountRepository;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
@@ -82,9 +85,26 @@ public class AuthController {
             return;
         }
 
-        String email = principal.getAttribute("email");
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Lỗi hệ thống sau khi login Social"));
+        String provider = principal.getAttribute("provider");
+        String providerId = principal.getAttribute("providerId");
+
+        User user = null;
+        if (provider != null && providerId != null) {
+            try {
+                SocialAccount.Provider providerEnum = SocialAccount.Provider.valueOf(provider);
+                user = socialAccountRepository.findByProviderAndProviderId(providerEnum, providerId)
+                        .map(SocialAccount::getUser)
+                        .orElse(null);
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid enum
+            }
+        }
+
+        if (user == null) {
+            String email = principal.getAttribute("email");
+            user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Lỗi hệ thống sau khi login Social"));
+        }
 
         String token = jwtService.generateToken(user.getEmail());
 
