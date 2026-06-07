@@ -107,7 +107,7 @@ public class VNPAYConfig {
 
         vnp_Params.put("vnp_Version", version);
         vnp_Params.put("vnp_Command", command);
-        vnp_Params.put("vnp_TmnCode", tmnCode);
+        vnp_Params.put("vnp_TmnCode", getTmnCode());
         vnp_Params.put("vnp_Amount", String.valueOf(amountInCents));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
@@ -132,10 +132,14 @@ public class VNPAYConfig {
                     query.append('&');
                 }
 
-                // Chuỗi hash có encode theo chuẩn VNPay 2.1.0
+                // Chuỗi hash encode theo chuẩn VNPay 2.1.0 (US_ASCII, khoảng trắng → '+')
                 hashData.append(fieldName);
                 hashData.append('=');
-                hashData.append(encodeParam(fieldValue));
+                try {
+                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
+                } catch (UnsupportedEncodingException e) {
+                    hashData.append(fieldValue);
+                }
 
                 // URL gửi sang VNPAY có encode (UTF-8, replace + with %20)
                 query.append(encodeParam(fieldName));
@@ -148,8 +152,7 @@ public class VNPAYConfig {
 
         String secureHashInput = hashData.toString();
 
-        String vnp_SecureHash =
-                hmacSHA512(hashSecret, secureHashInput).toUpperCase();
+        String vnp_SecureHash = hmacSHA512(getHashSecret(), secureHashInput);
 
         String paymentUrl =
                 payUrl +
