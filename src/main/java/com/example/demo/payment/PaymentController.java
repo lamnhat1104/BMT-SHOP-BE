@@ -65,7 +65,7 @@ public class PaymentController {
                 }
                 hashData.append(fieldName);
                 hashData.append('=');
-                hashData.append(fieldValue);
+                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
                 first = false;
             }
         }
