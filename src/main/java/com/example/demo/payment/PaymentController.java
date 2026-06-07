@@ -65,7 +65,7 @@ public class PaymentController {
                 }
                 hashData.append(fieldName);
                 hashData.append('=');
-                hashData.append(vnpayConfig.encodeParam(fieldValue));
+                hashData.append(fieldValue);
                 first = false;
             }
         }
