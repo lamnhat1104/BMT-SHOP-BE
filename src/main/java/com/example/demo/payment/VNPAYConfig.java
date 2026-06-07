@@ -107,7 +107,7 @@ public class VNPAYConfig {
 
         vnp_Params.put("vnp_Version", version);
         vnp_Params.put("vnp_Command", command);
-        vnp_Params.put("vnp_TmnCode", tmnCode);
+        vnp_Params.put("vnp_TmnCode", getTmnCode());
         vnp_Params.put("vnp_Amount", String.valueOf(amountInCents));
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
@@ -149,7 +149,7 @@ public class VNPAYConfig {
         String secureHashInput = hashData.toString();
 
         String vnp_SecureHash =
-                hmacSHA512(hashSecret, secureHashInput).toUpperCase();
+                hmacSHA512(getHashSecret(), secureHashInput).toUpperCase();
 
         String paymentUrl =
                 payUrl +
