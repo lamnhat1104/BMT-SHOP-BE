@@ -132,10 +132,10 @@ public class VNPAYConfig {
                     query.append('&');
                 }
 
-                // Chuỗi hash KHÔNG encode
+                // Chuỗi hash có encode theo chuẩn VNPay 2.1.0
                 hashData.append(fieldName);
                 hashData.append('=');
-                hashData.append(fieldValue);
+                hashData.append(encodeParam(fieldValue));
 
                 // URL gửi sang VNPAY có encode (UTF-8, replace + with %20)
                 query.append(encodeParam(fieldName));
