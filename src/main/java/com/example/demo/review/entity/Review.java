@@ -49,6 +49,9 @@ public class Review {
     @Column(name = "comment", columnDefinition = "TEXT")
     private String comment;
 
+    @Column(name = "reply", columnDefinition = "TEXT")
+    private String reply;
+
     @Column(name = "is_active")
     @Builder.Default
     private Boolean isActive = true;

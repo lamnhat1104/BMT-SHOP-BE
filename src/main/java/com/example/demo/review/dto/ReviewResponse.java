@@ -19,6 +19,7 @@ public class ReviewResponse {
     private String userFullName;
     private Integer rating;
     private String comment;
+    private String reply;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private java.util.List<String> imageUrls;
@@ -43,6 +44,7 @@ public class ReviewResponse {
                 .userFullName(review.getUser() != null ? review.getUser().getFullName() : "Tài khoản đã xóa")
                 .rating(review.getRating())
                 .comment(review.getComment())
+                .reply(review.getReply())
                 .isActive(review.getIsActive())
                 .createdAt(review.getCreatedAt())
                 .imageUrls(urls)

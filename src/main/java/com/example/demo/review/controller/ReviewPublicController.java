@@ -29,9 +29,9 @@ public class ReviewPublicController {
 
     @PostMapping
     public ResponseEntity<ReviewResponse> createReview(
-            @RequestParam("orderId") Integer orderId,
+            @RequestParam(value = "orderId", required = false) Integer orderId,
             @RequestParam("productId") Integer productId,
-            @RequestParam("rating") Integer rating,
+            @RequestParam(value = "rating", required = false) Integer rating,
             @RequestParam("comment") String comment,
             @RequestParam(value = "files", required = false) List<MultipartFile> files) {
 
@@ -47,5 +47,26 @@ public class ReviewPublicController {
                 .build();
 
         return ResponseEntity.ok(reviewService.createReview(user.getUserId(), request, files));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ReviewResponse> updateReview(
+            @PathVariable Integer id,
+            @RequestParam("comment") String newComment) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        return ResponseEntity.ok(reviewService.updateReviewByUser(user.getUserId(), id, newComment));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteReview(@PathVariable Integer id) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        reviewService.deleteReviewByUser(user.getUserId(), id);
+        return ResponseEntity.ok().build();
     }
 }

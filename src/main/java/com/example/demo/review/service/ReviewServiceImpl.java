@@ -66,20 +66,22 @@ public class ReviewServiceImpl implements ReviewService {
         // Wait, Controller will just pass email and we can query here, or controller queries and passes userId.
         // Let's assume controller passes userId. So this method is fine.
         
-        // 1. Kiểm tra user đã mua sản phẩm và nhận hàng thành công chưa
-        List<Order> completedOrders = orderRepository.findByUserIdAndStatus(userId, "completed");
-        boolean hasBought = completedOrders.stream().anyMatch(order -> 
-            order.getId().equals(request.getOrderId()) &&
-            order.getOrderDetails().stream().anyMatch(od -> od.getProductId().equals(request.getProductId()))
-        );
+        if (request.getOrderId() != null) {
+            // 1. Kiểm tra user đã mua sản phẩm và nhận hàng thành công chưa
+            List<Order> completedOrders = orderRepository.findByUserIdAndStatus(userId, "completed");
+            boolean hasBought = completedOrders.stream().anyMatch(order -> 
+                order.getId().equals(request.getOrderId()) &&
+                order.getOrderDetails().stream().anyMatch(od -> od.getProductId().equals(request.getProductId()))
+            );
 
-        if (!hasBought) {
-            throw new RuntimeException("Bạn chỉ có thể đánh giá sản phẩm sau khi đã mua và nhận hàng thành công từ đơn hàng này.");
-        }
+            if (!hasBought) {
+                throw new RuntimeException("Bạn chỉ có thể đánh giá sản phẩm sau khi đã mua và nhận hàng thành công từ đơn hàng này.");
+            }
 
-        // 2. Kiểm tra xem đã review chưa cho đơn hàng này
-        if (reviewRepository.existsByOrderIdAndProductId(request.getOrderId(), request.getProductId())) {
-            throw new RuntimeException("Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi.");
+            // 2. Kiểm tra xem đã review chưa cho đơn hàng này
+            if (reviewRepository.existsByOrderIdAndProductId(request.getOrderId(), request.getProductId())) {
+                throw new RuntimeException("Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi.");
+            }
         }
 
         // 3. Tạo Review
@@ -121,5 +123,42 @@ public class ReviewServiceImpl implements ReviewService {
         review.setImages(images);
 
         return ReviewResponse.fromEntity(review);
+    }
+
+    @Override
+    @Transactional
+    public ReviewResponse updateReviewByUser(Integer userId, Integer reviewId, String newComment) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Bình luận/Đánh giá không tồn tại"));
+
+        if (!review.getUserId().equals(userId)) {
+            throw new RuntimeException("Bạn không có quyền chỉnh sửa bình luận này");
+        }
+
+        review.setComment(newComment);
+        return ReviewResponse.fromEntity(reviewRepository.save(review));
+    }
+
+    @Override
+    @Transactional
+    public void deleteReviewByUser(Integer userId, Integer reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Bình luận/Đánh giá không tồn tại"));
+
+        if (!review.getUserId().equals(userId)) {
+            throw new RuntimeException("Bạn không có quyền xóa bình luận này");
+        }
+
+        reviewRepository.delete(review);
+    }
+
+    @Override
+    @Transactional
+    public ReviewResponse replyToReview(Integer reviewId, String reply) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Bình luận/Đánh giá không tồn tại"));
+
+        review.setReply(reply);
+        return ReviewResponse.fromEntity(reviewRepository.save(review));
     }
 }

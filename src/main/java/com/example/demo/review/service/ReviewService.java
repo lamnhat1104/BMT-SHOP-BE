@@ -12,4 +12,8 @@ public interface ReviewService {
     
     List<ReviewResponse> getReviewsByProductId(Integer productId);
     ReviewResponse createReview(Integer userId, com.example.demo.review.dto.ReviewRequest request, java.util.List<org.springframework.web.multipart.MultipartFile> files);
+    
+    ReviewResponse updateReviewByUser(Integer userId, Integer reviewId, String newComment);
+    void deleteReviewByUser(Integer userId, Integer reviewId);
+    ReviewResponse replyToReview(Integer reviewId, String reply);
 }

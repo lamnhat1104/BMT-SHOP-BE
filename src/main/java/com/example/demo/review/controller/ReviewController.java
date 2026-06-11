@@ -25,4 +25,11 @@ public class ReviewController {
         reviewService.deleteReview(id);
         return ResponseEntity.ok().build();
     }
+
+    @PutMapping("/{id}/reply")
+    public ResponseEntity<ReviewResponse> replyToReview(
+            @PathVariable Integer id,
+            @RequestParam("reply") String reply) {
+        return ResponseEntity.ok(reviewService.replyToReview(id, reply));
+    }
 }
