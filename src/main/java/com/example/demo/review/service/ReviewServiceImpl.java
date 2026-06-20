@@ -13,15 +13,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import com.example.demo.config.CloudinaryService;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +28,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final OrderRepository orderRepository;
     private final ReviewImageRepository reviewImageRepository;
-
-    private final String UPLOAD_DIR = "uploads/reviews/";
+    private final CloudinaryService cloudinaryService;
 
     @Override
     public List<ReviewResponse> getAllReviews(Boolean showHidden) {
@@ -68,7 +65,7 @@ public class ReviewServiceImpl implements ReviewService {
         
         if (request.getOrderId() != null) {
             // 1. Kiểm tra user đã mua sản phẩm và nhận hàng thành công chưa
-            List<Order> completedOrders = orderRepository.findByUserIdAndStatus(userId, "completed");
+            List<Order> completedOrders = orderRepository.findByUserIdAndStatus(userId, "Hoàn thành");
             boolean hasBought = completedOrders.stream().anyMatch(order -> 
                 order.getId().equals(request.getOrderId()) &&
                 order.getOrderDetails().stream().anyMatch(od -> od.getProductId().equals(request.getProductId()))
@@ -95,28 +92,20 @@ public class ReviewServiceImpl implements ReviewService {
                 .build();
         review = reviewRepository.save(review);
 
-        // 4. Lưu hình ảnh
         List<ReviewImage> images = new ArrayList<>();
         if (files != null && !files.isEmpty()) {
-            File uploadDir = new File(UPLOAD_DIR);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
-            }
-
             for (MultipartFile file : files) {
                 if (file.isEmpty()) continue;
                 try {
-                    String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-                    Path path = Paths.get(UPLOAD_DIR + filename);
-                    Files.write(path, file.getBytes());
+                    String secureUrl = cloudinaryService.uploadFile(file);
 
                     ReviewImage image = ReviewImage.builder()
                             .reviewId(review.getId())
-                            .imageUrl("/uploads/reviews/" + filename)
+                            .imageUrl(secureUrl)
                             .build();
                     images.add(reviewImageRepository.save(image));
                 } catch (IOException e) {
-                    throw new RuntimeException("Lỗi khi lưu hình ảnh: " + e.getMessage());
+                    throw new RuntimeException("Lỗi khi tải hình ảnh lên Cloudinary: " + e.getMessage());
                 }
             }
         }
