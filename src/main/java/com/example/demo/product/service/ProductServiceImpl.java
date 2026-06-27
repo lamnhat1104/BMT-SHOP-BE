@@ -17,7 +17,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
 
     @Override
-    public List<ProductResponse> getAllProducts(String sort, String brand, Integer categoryId, Boolean showHidden) {
+    public List<ProductResponse> getAllProducts(String sort, String brand, Integer categoryId, Boolean showHidden, Double minPrice, Double maxPrice) {
         Sort jpaSort = Sort.unsorted();
         if ("newest".equalsIgnoreCase(sort)) {
             jpaSort = Sort.by(Sort.Direction.DESC, "createdAt");
@@ -27,7 +27,7 @@ public class ProductServiceImpl implements ProductService {
             jpaSort = Sort.by(Sort.Direction.DESC, "price");
         }
 
-        List<Product> products = productRepository.filterProducts(brand, categoryId, jpaSort);
+        List<Product> products = productRepository.filterProducts(brand, categoryId, minPrice, maxPrice, jpaSort);
         return products.stream()
                 .filter(p -> (showHidden != null && showHidden) || (p.getIsDeleted() == null || !p.getIsDeleted()))
                 .map(ProductResponse::fromEntity)

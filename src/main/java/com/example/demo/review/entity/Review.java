@@ -36,15 +36,28 @@ public class Review {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
+    @Column(name = "order_id")
+    private Integer orderId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    private com.example.demo.order.entity.Order order;
+
     @Column(name = "rating")
     private Integer rating;
 
     @Column(name = "comment", columnDefinition = "TEXT")
     private String comment;
 
+    @Column(name = "reply", columnDefinition = "TEXT")
+    private String reply;
+
     @Column(name = "is_active")
     @Builder.Default
     private Boolean isActive = true;
+
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private java.util.List<ReviewImage> images;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
