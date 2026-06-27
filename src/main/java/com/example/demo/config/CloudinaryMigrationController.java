@@ -31,4 +31,19 @@ public class CloudinaryMigrationController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    // TEMPORARY: Public endpoint to trigger migration without auth
+    @PostMapping("/public/migrate-images")
+    public ResponseEntity<?> migrateImagesPublic() {
+        try {
+            String result = migrationService.migrateAllImages();
+            Map<String, String> response = new HashMap<>();
+            response.put("message", result);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "Lỗi trong quá trình migrate: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }
