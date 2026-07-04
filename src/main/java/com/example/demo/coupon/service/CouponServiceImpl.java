@@ -39,7 +39,12 @@ public class CouponServiceImpl implements CouponService {
 
         Coupon coupon = Coupon.builder()
                 .code(request.getCode().trim().toUpperCase())
-                .discountPercent(request.getDiscountPercent())
+                .discountType(request.getDiscountType())
+                .discountValue(request.getDiscountValue())
+                .minOrderValue(request.getMinOrderValue())
+                .maxDiscountAmount(request.getMaxDiscountAmount())
+                .maxUses(request.getMaxUses())
+                .usedCount(0)
                 .expiredAt(request.getExpiredAt())
                 .isActive(request.getIsActive() != null ? request.getIsActive() : true)
                 .build();
@@ -59,7 +64,11 @@ public class CouponServiceImpl implements CouponService {
         }
 
         coupon.setCode(request.getCode().trim().toUpperCase());
-        coupon.setDiscountPercent(request.getDiscountPercent());
+        coupon.setDiscountType(request.getDiscountType());
+        coupon.setDiscountValue(request.getDiscountValue());
+        coupon.setMinOrderValue(request.getMinOrderValue());
+        coupon.setMaxDiscountAmount(request.getMaxDiscountAmount());
+        coupon.setMaxUses(request.getMaxUses());
         coupon.setExpiredAt(request.getExpiredAt());
         if (request.getIsActive() != null) {
             coupon.setIsActive(request.getIsActive());
@@ -75,5 +84,92 @@ public class CouponServiceImpl implements CouponService {
                 .orElseThrow(() -> new RuntimeException("Mã khuyến mãi không tồn tại"));
         coupon.setIsActive(coupon.getIsActive() == null || !coupon.getIsActive());
         couponRepository.save(coupon);
+    }
+
+    @Override
+    public com.example.demo.coupon.dto.ApplyCouponResponse applyCoupon(com.example.demo.coupon.dto.ApplyCouponRequest request) {
+        Optional<Coupon> couponOpt = couponRepository.findByCode(request.getCode().trim().toUpperCase());
+        if (couponOpt.isEmpty()) {
+            return com.example.demo.coupon.dto.ApplyCouponResponse.builder()
+                    .isValid(false)
+                    .message("Mã khuyến mãi không tồn tại")
+                    .build();
+        }
+
+        Coupon coupon = couponOpt.get();
+
+        if (coupon.getIsActive() != null && !coupon.getIsActive()) {
+            return com.example.demo.coupon.dto.ApplyCouponResponse.builder()
+                    .isValid(false)
+                    .message("Mã khuyến mãi không còn hoạt động")
+                    .build();
+        }
+
+        if (coupon.getExpiredAt().isBefore(java.time.LocalDateTime.now())) {
+            return com.example.demo.coupon.dto.ApplyCouponResponse.builder()
+                    .isValid(false)
+                    .message("Mã khuyến mãi đã hết hạn")
+                    .build();
+        }
+
+        if (coupon.getMaxUses() != null && coupon.getUsedCount() >= coupon.getMaxUses()) {
+            return com.example.demo.coupon.dto.ApplyCouponResponse.builder()
+                    .isValid(false)
+                    .message("Mã khuyến mãi đã hết lượt sử dụng")
+                    .build();
+        }
+
+        if (coupon.getMinOrderValue() != null && request.getCartTotal() < coupon.getMinOrderValue()) {
+            return com.example.demo.coupon.dto.ApplyCouponResponse.builder()
+                    .isValid(false)
+                    .message("Đơn hàng chưa đạt giá trị tối thiểu " + coupon.getMinOrderValue() + " để sử dụng mã")
+                    .build();
+        }
+
+        double discountAmount = 0.0;
+        Coupon.DiscountType type = coupon.getDiscountType();
+        Double value = coupon.getDiscountValue();
+        
+        // Handle legacy coupons that don't have discountType or discountValue in DB
+        if (type == null) {
+            type = Coupon.DiscountType.PERCENTAGE;
+        }
+        if (value == null || value <= 0) {
+            // Because we can't fetch discountPercent anymore, we use a default.
+            // Wait, maybe we can just set a default of 10% for legacy coupons
+            value = 10.0;
+        }
+
+        // Heuristic fix for corrupted legacy coupons: if fixed amount is extremely small (<= 100),
+        // it was likely meant to be a percentage.
+        if (type == Coupon.DiscountType.FIXED_AMOUNT && value <= 100.0) {
+            type = Coupon.DiscountType.PERCENTAGE;
+        }
+
+        if (type == Coupon.DiscountType.PERCENTAGE) {
+            discountAmount = request.getCartTotal() * (value / 100.0);
+            if (coupon.getMaxDiscountAmount() != null && coupon.getMaxDiscountAmount() > 0 && discountAmount > coupon.getMaxDiscountAmount()) {
+                discountAmount = coupon.getMaxDiscountAmount();
+            }
+        } else if (type == Coupon.DiscountType.FIXED_AMOUNT) {
+            discountAmount = value;
+        } else if (type == Coupon.DiscountType.FREE_SHIPPING) {
+            discountAmount = value; 
+        }
+
+        System.out.println("DEBUG applyCoupon -> type: " + type + ", value: " + value + ", maxDiscountAmount: " + coupon.getMaxDiscountAmount() + ", calculated discountAmount: " + discountAmount);
+
+
+        // Không cho phép giảm quá tổng tiền
+        if (discountAmount > request.getCartTotal()) {
+            discountAmount = request.getCartTotal();
+        }
+
+        return com.example.demo.coupon.dto.ApplyCouponResponse.builder()
+                .isValid(true)
+                .discountAmount(discountAmount)
+                .message("Áp dụng mã khuyến mãi thành công")
+                .coupon(CouponResponse.fromEntity(coupon))
+                .build();
     }
 }

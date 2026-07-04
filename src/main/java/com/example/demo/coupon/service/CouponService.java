@@ -13,4 +13,5 @@ public interface CouponService {
     CouponResponse createCoupon(CouponSaveRequest request);
     CouponResponse updateCoupon(Integer id, CouponSaveRequest request);
     void deleteCoupon(Integer id);
+    com.example.demo.coupon.dto.ApplyCouponResponse applyCoupon(com.example.demo.coupon.dto.ApplyCouponRequest request);
 }

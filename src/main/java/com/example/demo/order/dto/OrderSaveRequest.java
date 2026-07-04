@@ -24,4 +24,6 @@ public class OrderSaveRequest {
 
     @NotBlank(message = "Phương thức thanh toán không được để trống")
     private String paymentMethod;
+
+    private String couponCode;
 }

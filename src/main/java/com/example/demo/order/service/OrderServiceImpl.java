@@ -37,6 +37,8 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final VNPAYConfig vnpayConfig;
+    private final com.example.demo.coupon.service.CouponService couponService;
+    private final com.example.demo.coupon.repository.CouponRepository couponRepository;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -71,13 +73,39 @@ public class OrderServiceImpl implements OrderService {
         // Generate a unique order code, e.g. BMT123456
         String orderCode = generateOrderCode();
 
+        // Apply coupon if exists
+        double discountAmount = 0.0;
+        String appliedCouponCode = null;
+        if (request.getCouponCode() != null && !request.getCouponCode().trim().isEmpty()) {
+            com.example.demo.coupon.dto.ApplyCouponRequest applyReq = new com.example.demo.coupon.dto.ApplyCouponRequest();
+            applyReq.setCode(request.getCouponCode());
+            applyReq.setCartTotal(totalPrice);
+            com.example.demo.coupon.dto.ApplyCouponResponse applyRes = couponService.applyCoupon(applyReq);
+            if (!applyRes.getIsValid()) {
+                throw new RuntimeException(applyRes.getMessage());
+            }
+            discountAmount = applyRes.getDiscountAmount();
+            appliedCouponCode = request.getCouponCode().trim().toUpperCase();
+            
+            // Update coupon usedCount
+            com.example.demo.coupon.entity.Coupon coupon = couponRepository.findByCode(appliedCouponCode).orElse(null);
+            if (coupon != null) {
+                coupon.setUsedCount((coupon.getUsedCount() == null ? 0 : coupon.getUsedCount()) + 1);
+                couponRepository.save(coupon);
+            }
+        }
+        double finalPrice = totalPrice - discountAmount;
+        if (finalPrice < 0) finalPrice = 0.0;
+
         boolean isVNPay = "VNPAY".equalsIgnoreCase(request.getPaymentMethod());
 
         // Create order
         Order order = Order.builder()
                 .orderCode(orderCode)
                 .userId(user.getUserId())
-                .totalPrice(totalPrice)
+                .totalPrice(finalPrice)
+                .discountAmount(discountAmount)
+                .couponCode(appliedCouponCode)
                 .status(isVNPay ? "Chờ thanh toán" : "Chờ xác nhận") // Match frontend status badge display
                 .paymentMethod(request.getPaymentMethod())
                 .paymentStatus("pending")

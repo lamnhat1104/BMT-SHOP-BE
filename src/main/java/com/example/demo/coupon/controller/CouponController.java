@@ -44,4 +44,9 @@ public class CouponController {
         couponService.deleteCoupon(id);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/apply")
+    public ResponseEntity<com.example.demo.coupon.dto.ApplyCouponResponse> applyCoupon(@Valid @RequestBody com.example.demo.coupon.dto.ApplyCouponRequest request) {
+        return ResponseEntity.ok(couponService.applyCoupon(request));
+    }
 }

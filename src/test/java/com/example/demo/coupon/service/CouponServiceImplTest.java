@@ -34,14 +34,16 @@ public class CouponServiceImplTest {
         sampleCoupon = Coupon.builder()
                 .id(1)
                 .code("SUMMER20")
-                .discountPercent(20)
+                .discountType(Coupon.DiscountType.PERCENTAGE)
+                .discountValue(20.0)
                 .expiredAt(LocalDateTime.now().plusDays(10))
                 .isActive(true)
                 .build();
 
         saveRequest = CouponSaveRequest.builder()
                 .code("SUMMER20")
-                .discountPercent(20)
+                .discountType(Coupon.DiscountType.PERCENTAGE)
+                .discountValue(20.0)
                 .expiredAt(LocalDateTime.now().plusDays(10))
                 .isActive(true)
                 .build();
