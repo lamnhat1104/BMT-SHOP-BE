@@ -56,6 +56,12 @@ public class Order {
     @Column(name = "shipping_address", length = 255)
     private String shippingAddress;
 
+    @Column(name = "shipping_fee")
+    private Double shippingFee;
+
+    @Column(name = "shipping_method", length = 50)
+    private String shippingMethod;
+
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 

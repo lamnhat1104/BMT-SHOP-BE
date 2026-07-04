@@ -26,4 +26,6 @@ public class OrderSaveRequest {
     private String paymentMethod;
 
     private String couponCode;
+
+    private String shippingMethod;
 }

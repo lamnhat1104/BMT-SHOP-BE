@@ -94,7 +94,22 @@ public class OrderServiceImpl implements OrderService {
                 couponRepository.save(coupon);
             }
         }
-        double finalPrice = totalPrice - discountAmount;
+        // Calculate Shipping Fee
+        double shippingFee = 0.0;
+        String shippingMethod = request.getShippingMethod() != null ? request.getShippingMethod() : "Tiêu chuẩn";
+        
+        if (totalPrice >= 2000000) {
+            shippingFee = 0.0;
+            shippingMethod = "Miễn phí vận chuyển";
+        } else if ("Hỏa tốc".equalsIgnoreCase(shippingMethod) || "Express".equalsIgnoreCase(shippingMethod)) {
+            shippingFee = 50000.0;
+            shippingMethod = "Hỏa tốc";
+        } else {
+            shippingFee = 30000.0;
+            shippingMethod = "Tiêu chuẩn";
+        }
+
+        double finalPrice = totalPrice + shippingFee - discountAmount;
         if (finalPrice < 0) finalPrice = 0.0;
 
         boolean isVNPay = "VNPAY".equalsIgnoreCase(request.getPaymentMethod());
@@ -112,6 +127,8 @@ public class OrderServiceImpl implements OrderService {
                 .receiverName(request.getFullName())
                 .receiverPhone(request.getPhone())
                 .shippingAddress(request.getAddress())
+                .shippingFee(shippingFee)
+                .shippingMethod(shippingMethod)
                 .notes(request.getNotes())
                 .build();
 
@@ -152,7 +169,7 @@ public class OrderServiceImpl implements OrderService {
         // Send Order Confirmation Email (Only immediately for COD, VNPay sends on success callback)
         if (!isVNPay) {
             try {
-                emailService.sendOrderConfirmationEmail(user.getEmail(), orderCode, totalPrice, request.getFullName());
+                emailService.sendOrderConfirmationEmail(user.getEmail(), orderCode, finalPrice, request.getFullName());
             } catch (Exception e) {
                 System.err.println("OrderServiceImpl - Lỗi gửi mail xác nhận đơn hàng: " + e.getMessage());
             }
@@ -170,7 +187,7 @@ public class OrderServiceImpl implements OrderService {
             } catch (Exception e) {
                 // Ignore fallback for testing
             }
-            String paymentUrl = vnpayConfig.createPaymentUrl(orderCode, totalPrice, ipAddress);
+            String paymentUrl = vnpayConfig.createPaymentUrl(orderCode, finalPrice, ipAddress);
             response.setPaymentUrl(paymentUrl);
         }
 
