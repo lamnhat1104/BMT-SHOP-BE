@@ -27,6 +27,9 @@ public class ProductResponse {
     private Boolean isFeatured;
     private String status;
     private Boolean isDeleted;
+    private Integer soldCount;
+    private Double rating;
+    private Integer reviewCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private CategoryResponse category;
@@ -106,6 +109,9 @@ public class ProductResponse {
                 .isFeatured(product.getIsFeatured())
                 .status(product.getStatus())
                 .isDeleted(product.getIsDeleted())
+                .soldCount(product.getSoldCount() != null ? product.getSoldCount() : 0)
+                .rating(product.getRating() != null ? product.getRating() : 5.0)
+                .reviewCount(product.getReviewCount() != null ? product.getReviewCount() : 0)
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
                 .category(product.getCategory() != null ? CategoryResponse.builder()

@@ -57,6 +57,15 @@ public class Product {
     @Column(name = "is_deleted")
     private Boolean isDeleted;
 
+    @Column(name = "sold_count")
+    private Integer soldCount = 0;
+
+    @Column(name = "rating")
+    private Double rating = 5.0;
+
+    @Column(name = "review_count")
+    private Integer reviewCount = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", insertable = false, updatable = false)
     private Category category;

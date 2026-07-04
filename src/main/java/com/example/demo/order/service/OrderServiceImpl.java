@@ -122,8 +122,9 @@ public class OrderServiceImpl implements OrderService {
         for (CartItem item : cartItems) {
             Product product = item.getProduct();
 
-            // Reduce stock
+            // Reduce stock and increase soldCount
             product.setStock(product.getStock() - item.getQuantity());
+            product.setSoldCount((product.getSoldCount() != null ? product.getSoldCount() : 0) + item.getQuantity());
             if (product.getStock() == 0) {
                 product.setStatus("out_of_stock");
             }
