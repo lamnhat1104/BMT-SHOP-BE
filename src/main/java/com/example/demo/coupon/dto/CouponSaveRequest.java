@@ -17,10 +17,21 @@ public class CouponSaveRequest {
     @Size(max = 50, message = "Mã khuyến mãi không được quá 50 ký tự")
     private String code;
 
-    @NotNull(message = "Mức giảm giá không được để trống")
-    @Min(value = 1, message = "Mức giảm giá tối thiểu là 1%")
-    @Max(value = 100, message = "Mức giảm giá tối đa là 100%")
-    private Integer discountPercent;
+    @NotNull(message = "Loại giảm giá không được để trống")
+    private com.example.demo.coupon.entity.Coupon.DiscountType discountType;
+
+    @NotNull(message = "Giá trị giảm giá không được để trống")
+    @Min(value = 0, message = "Giá trị giảm giá phải lớn hơn hoặc bằng 0")
+    private Double discountValue;
+
+    @Min(value = 0, message = "Giá trị đơn hàng tối thiểu phải lớn hơn hoặc bằng 0")
+    private Double minOrderValue;
+
+    @Min(value = 0, message = "Số tiền giảm tối đa phải lớn hơn hoặc bằng 0")
+    private Double maxDiscountAmount;
+
+    @Min(value = 1, message = "Số lần sử dụng tối đa phải lớn hơn hoặc bằng 1")
+    private Integer maxUses;
 
     @NotNull(message = "Ngày hết hạn không được để trống")
     private LocalDateTime expiredAt;

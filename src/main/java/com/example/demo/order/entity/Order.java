@@ -32,6 +32,12 @@ public class Order {
     @Column(name = "total_price")
     private Double totalPrice;
 
+    @Column(name = "discount_amount")
+    private Double discountAmount;
+
+    @Column(name = "coupon_code", length = 50)
+    private String couponCode;
+
     @Column(name = "status")
     private String status; // 'pending','confirmed','shipping','completed','cancelled'
 

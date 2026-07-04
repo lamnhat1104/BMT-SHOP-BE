@@ -5,10 +5,11 @@ import com.example.demo.product.dto.ProductSaveRequest;
 import java.util.List;
 
 public interface ProductService {
-    List<ProductResponse> getAllProducts(String sort, String brand, Integer categoryId, Boolean showHidden, Double minPrice, Double maxPrice);
+    List<ProductResponse> getAllProducts(String keyword, String sort, String brand, Integer categoryId, Boolean showHidden, Double minPrice, Double maxPrice);
     default List<ProductResponse> getAllProducts() {
-        return getAllProducts(null, null, null, false, null, null);
+        return getAllProducts(null, null, null, null, false, null, null);
     }
+    List<ProductResponse> autocompleteSearch(String keyword);
     ProductResponse getProductById(Integer id);
     ProductResponse createProduct(ProductSaveRequest request);
     ProductResponse updateProduct(Integer id, ProductSaveRequest request);

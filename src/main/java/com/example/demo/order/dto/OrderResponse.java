@@ -26,6 +26,8 @@ public class OrderResponse {
     private String paymentStatus;
     private String status;
     private Double totalAmount;
+    private Double discountAmount;
+    private String couponCode;
     private String paymentUrl;
     private LocalDateTime createdAt;
     private List<OrderDetailResponse> items;
@@ -52,6 +54,8 @@ public class OrderResponse {
             .paymentStatus(order.getPaymentStatus())
             .status(order.getStatus())
             .totalAmount(order.getTotalPrice())
+            .discountAmount(order.getDiscountAmount())
+            .couponCode(order.getCouponCode())
             .createdAt(order.getOrderDate())
             .items(listItems)
             .build();

@@ -20,6 +20,7 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProducts(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) Integer categoryId,
@@ -27,7 +28,12 @@ public class ProductController {
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice
     ) {
-        return ResponseEntity.ok(productService.getAllProducts(sort, brand, categoryId, showHidden, minPrice, maxPrice));
+        return ResponseEntity.ok(productService.getAllProducts(keyword, sort, brand, categoryId, showHidden, minPrice, maxPrice));
+    }
+
+    @GetMapping("/autocomplete")
+    public ResponseEntity<List<ProductResponse>> autocompleteSearch(@RequestParam String keyword) {
+        return ResponseEntity.ok(productService.autocompleteSearch(keyword));
     }
 
     @GetMapping("/{id}")

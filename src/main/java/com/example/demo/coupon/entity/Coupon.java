@@ -23,12 +23,32 @@ public class Coupon {
     @Column(name = "code", nullable = false, unique = true, length = 50)
     private String code;
 
-    @Column(name = "discount_percent", nullable = false)
-    private Integer discountPercent;
+    @Column(name = "discount_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private DiscountType discountType; // PERCENTAGE, FIXED_AMOUNT, FREE_SHIPPING
+
+    @Column(name = "discount_value", nullable = false)
+    private Double discountValue;
+
+    @Column(name = "min_order_value")
+    private Double minOrderValue;
+
+    @Column(name = "max_discount_amount")
+    private Double maxDiscountAmount;
+
+    @Column(name = "max_uses")
+    private Integer maxUses;
+
+    @Column(name = "used_count")
+    private Integer usedCount = 0;
 
     @Column(name = "expired_at", nullable = false)
     private LocalDateTime expiredAt;
 
     @Column(name = "is_active")
     private Boolean isActive;
+
+    public enum DiscountType {
+        PERCENTAGE, FIXED_AMOUNT, FREE_SHIPPING
+    }
 }

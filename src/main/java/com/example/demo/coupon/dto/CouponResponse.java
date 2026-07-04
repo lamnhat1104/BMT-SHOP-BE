@@ -14,7 +14,12 @@ import java.time.LocalDateTime;
 public class CouponResponse {
     private Integer id;
     private String code;
-    private Integer discountPercent;
+    private com.example.demo.coupon.entity.Coupon.DiscountType discountType;
+    private Double discountValue;
+    private Double minOrderValue;
+    private Double maxDiscountAmount;
+    private Integer maxUses;
+    private Integer usedCount;
     private LocalDateTime expiredAt;
     private Boolean isActive;
 
@@ -25,7 +30,12 @@ public class CouponResponse {
         return CouponResponse.builder()
                 .id(coupon.getId())
                 .code(coupon.getCode())
-                .discountPercent(coupon.getDiscountPercent())
+                .discountType(coupon.getDiscountType())
+                .discountValue(coupon.getDiscountValue())
+                .minOrderValue(coupon.getMinOrderValue())
+                .maxDiscountAmount(coupon.getMaxDiscountAmount())
+                .maxUses(coupon.getMaxUses())
+                .usedCount(coupon.getUsedCount())
                 .expiredAt(coupon.getExpiredAt())
                 .isActive(coupon.getIsActive())
                 .build();
