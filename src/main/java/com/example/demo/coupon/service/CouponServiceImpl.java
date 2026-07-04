@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 public class CouponServiceImpl implements CouponService {
 
     private final CouponRepository couponRepository;
+    private final com.example.demo.notification.service.NotificationService notificationService;
 
     @Override
     public List<CouponResponse> getAllCoupons(Boolean showHidden) {
@@ -50,6 +51,24 @@ public class CouponServiceImpl implements CouponService {
                 .build();
 
         Coupon saved = couponRepository.save(coupon);
+
+        // Send Global Notification
+        try {
+            String discountText = "";
+            if (coupon.getDiscountType() == Coupon.DiscountType.PERCENTAGE) {
+                discountText = "giảm " + coupon.getDiscountValue() + "%";
+            } else if (coupon.getDiscountType() == Coupon.DiscountType.FIXED_AMOUNT) {
+                discountText = "giảm " + String.format("%,.0fđ", coupon.getDiscountValue());
+            } else if (coupon.getDiscountType() == Coupon.DiscountType.FREE_SHIPPING) {
+                discountText = "miễn phí vận chuyển";
+            }
+            String title = "Mã giảm giá mới: " + coupon.getCode();
+            String message = "Hệ thống vừa tung ra mã " + coupon.getCode() + " " + discountText + ". Nhanh tay kẻo lỡ!";
+            notificationService.createGlobalNotification(title, message, "COUPON");
+        } catch (Exception e) {
+            System.err.println("Lỗi khi gửi thông báo mã giảm giá: " + e.getMessage());
+        }
+
         return CouponResponse.fromEntity(saved);
     }
 

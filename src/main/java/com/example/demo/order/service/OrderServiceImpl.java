@@ -39,6 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private final VNPAYConfig vnpayConfig;
     private final com.example.demo.coupon.service.CouponService couponService;
     private final com.example.demo.coupon.repository.CouponRepository couponRepository;
+    private final com.example.demo.notification.service.NotificationService notificationService;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -236,6 +237,16 @@ public class OrderServiceImpl implements OrderService {
         }
         
         Order saved = orderRepository.save(order);
+
+        // Send Notification
+        try {
+            String title = "Cập nhật đơn hàng " + saved.getOrderCode();
+            String message = "Đơn hàng " + saved.getOrderCode() + " của bạn đã chuyển sang trạng thái: " + status;
+            notificationService.createNotification(saved.getUserId(), title, message, "ORDER");
+        } catch (Exception e) {
+            System.err.println("Lỗi gửi thông báo đổi trạng thái đơn hàng: " + e.getMessage());
+        }
+
         return OrderResponse.fromEntity(saved);
     }
 
