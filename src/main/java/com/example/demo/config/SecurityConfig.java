@@ -48,6 +48,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/orders/track").permitAll()
                     .requestMatchers("/api/payment/**").permitAll()
                     .requestMatchers("/api/reviews/product/**").permitAll()
+                    .requestMatchers("/api/v1/ai/**").permitAll()
                     .requestMatchers("/uploads/**").permitAll()
                     .anyRequest().authenticated()
             )

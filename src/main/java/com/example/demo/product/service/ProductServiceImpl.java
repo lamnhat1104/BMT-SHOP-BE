@@ -17,7 +17,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
 
     @Override
-    public List<ProductResponse> getAllProducts(String sort, String brand, Integer categoryId, Boolean showHidden, Double minPrice, Double maxPrice) {
+    public List<ProductResponse> getAllProducts(String keyword, String sort, String brand, Integer categoryId, Boolean showHidden, Double minPrice, Double maxPrice) {
         Sort jpaSort = Sort.unsorted();
         if ("newest".equalsIgnoreCase(sort)) {
             jpaSort = Sort.by(Sort.Direction.DESC, "createdAt");
@@ -27,9 +27,21 @@ public class ProductServiceImpl implements ProductService {
             jpaSort = Sort.by(Sort.Direction.DESC, "price");
         }
 
-        List<Product> products = productRepository.filterProducts(brand, categoryId, minPrice, maxPrice, jpaSort);
+        List<Product> products = productRepository.filterProducts(keyword, brand, categoryId, minPrice, maxPrice, jpaSort);
         return products.stream()
                 .filter(p -> (showHidden != null && showHidden) || (p.getIsDeleted() == null || !p.getIsDeleted()))
+                .map(ProductResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProductResponse> autocompleteSearch(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return List.of();
+        }
+        org.springframework.data.domain.Pageable limit = org.springframework.data.domain.PageRequest.of(0, 5);
+        return productRepository.autocompleteSearch(keyword.trim(), limit).stream()
+                .filter(p -> (p.getIsDeleted() == null || !p.getIsDeleted()))
                 .map(ProductResponse::fromEntity)
                 .collect(Collectors.toList());
     }
