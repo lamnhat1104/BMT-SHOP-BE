@@ -15,7 +15,7 @@ public class ProductVariant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "product_id", nullable = false)
+    @Column(name = "product_id", nullable = false, insertable = false, updatable = false)
     private Integer productId;
 
     private String size;

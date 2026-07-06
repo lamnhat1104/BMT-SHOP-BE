@@ -73,8 +73,17 @@ public class ProductResponse {
         if (product == null) return null;
 
         List<ImageResponse> uniqueImages = new java.util.ArrayList<>();
-        java.util.Set<String> seenUrls = new java.util.HashSet<>();
-        if (product.getVariants() != null) {
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            for (com.example.demo.product.entity.ProductImage img : product.getImages()) {
+                uniqueImages.add(ImageResponse.builder()
+                        .id(img.getId())
+                        .imageUrl(img.getImageUrl())
+                        .isMain(img.getIsMain() != null ? img.getIsMain() : false)
+                        .color(img.getColor())
+                        .build());
+            }
+        } else if (product.getVariants() != null) {
+            java.util.Set<String> seenUrls = new java.util.HashSet<>();
             for (com.example.demo.product.entity.ProductVariant v : product.getVariants()) {
                 if (v.getImages() != null) {
                     for (com.example.demo.product.entity.ProductImage img : v.getImages()) {
@@ -83,7 +92,7 @@ public class ProductResponse {
                             uniqueImages.add(ImageResponse.builder()
                                     .id(img.getId())
                                     .imageUrl(img.getImageUrl())
-                                    .isMain(img.getIsMain())
+                                    .isMain(img.getIsMain() != null ? img.getIsMain() : false)
                                     .color(img.getColor())
                                     .build());
                         }

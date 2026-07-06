@@ -22,6 +22,7 @@ public class DashboardStatsResponse {
     private List<ProductResponse> lowStockProducts;
     private List<OrderResponse> recentOrders;
     private Map<String, Double> revenueByStatus;
+    private Map<String, Long> ordersByStatus;
     private List<MonthlyRevenue> monthlyRevenue;
 
     @Data

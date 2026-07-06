@@ -15,7 +15,7 @@ public class ProductImage {
     @Column(name = "image_id")
     private Integer id;
 
-    @Column(name = "product_id")
+    @Column(name = "product_id", insertable = false, updatable = false)
     private Integer productId;
 
     @Column(name = "variant_id")

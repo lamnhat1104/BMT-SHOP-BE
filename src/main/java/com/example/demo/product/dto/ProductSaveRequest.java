@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Data
 @Builder
@@ -42,4 +43,23 @@ public class ProductSaveRequest {
     private Boolean isFeatured;
 
     private String status;
+
+    private List<VariantSaveRequest> variants;
+
+    private List<String> images;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class VariantSaveRequest {
+        private Integer id;
+        private String size;
+        private String color;
+        private String weight;
+        private String grip;
+        private Double price;
+        private Integer stock;
+        private String sku;
+    }
 }
