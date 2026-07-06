@@ -1,5 +1,6 @@
 package com.example.demo.product.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -44,6 +45,7 @@ public class ProductSaveRequest {
 
     private String status;
 
+    @Valid
     private List<VariantSaveRequest> variants;
 
     private List<String> images;
@@ -58,7 +60,13 @@ public class ProductSaveRequest {
         private String color;
         private String weight;
         private String grip;
+
+        @NotNull(message = "Giá biến thể không được để trống")
+        @Min(value = 0, message = "Giá biến thể phải lớn hơn hoặc bằng 0")
         private Double price;
+
+        @NotNull(message = "Số lượng kho biến thể không được để trống")
+        @Min(value = 0, message = "Số lượng kho biến thể phải lớn hơn hoặc bằng 0")
         private Integer stock;
         private String sku;
     }

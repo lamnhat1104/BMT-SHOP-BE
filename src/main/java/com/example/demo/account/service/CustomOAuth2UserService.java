@@ -56,6 +56,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         java.util.Optional<SocialAccount> existingSocial = socialAccountRepository.findByProviderAndProviderId(providerEnum, providerId);
         if (existingSocial.isPresent()) {
             user = existingSocial.get().getUser();
+            if (user.getIsActive() == null || !user.getIsActive()) {
+                throw new OAuth2AuthenticationException("Tài khoản của bạn đã bị khóa");
+            }
             finalEmail = user.getEmail();
             if (name != null && !name.trim().isEmpty() && !name.equals(user.getFullName())) {
                 user.setFullName(name);
@@ -66,14 +69,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 email = providerId + "@" + clientRegistrationId + ".com";
             }
             finalEmail = email;
-            user = userRepository.findByEmail(finalEmail).orElseGet(() -> {
-                User newUser = new User();
-                newUser.setEmail(finalEmail);
-                newUser.setFullName(name != null && !name.trim().isEmpty() ? name : (clientRegistrationId.equals("google") ? "Google User" : "Facebook User"));
-                newUser.setAvatar(picture);
-                newUser.setIsActive(true);
-                return userRepository.save(newUser);
-            });
+            user = userRepository.findByEmail(finalEmail).orElse(null);
+            if (user != null && (user.getIsActive() == null || !user.getIsActive())) {
+                throw new OAuth2AuthenticationException("Tài khoản của bạn đã bị khóa");
+            }
+            if (user == null) {
+                user = new User();
+                user.setEmail(finalEmail);
+                user.setFullName(name != null && !name.trim().isEmpty() ? name : (clientRegistrationId.equals("google") ? "Google User" : "Facebook User"));
+                user.setAvatar(picture);
+                user.setIsActive(true);
+                user = userRepository.save(user);
+            }
 
             SocialAccount socialAccount = new SocialAccount();
             socialAccount.setUser(user);

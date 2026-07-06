@@ -9,4 +9,5 @@ public interface AdminUserService {
     UserResponse createUser(UserSaveRequest request);
     UserResponse updateUser(Integer userId, UserSaveRequest request);
     UserResponse toggleUserStatus(Integer userId);
+    UserResponse resetPassword(Integer userId, String newPassword);
 }
