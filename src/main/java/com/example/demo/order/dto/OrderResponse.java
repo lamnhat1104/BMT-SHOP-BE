@@ -29,6 +29,8 @@ public class OrderResponse {
     private Double discountAmount;
     private String couponCode;
     private String paymentUrl;
+    private Double shippingFee;
+    private String shippingMethod;
     private LocalDateTime createdAt;
     private List<OrderDetailResponse> items;
 
@@ -56,6 +58,8 @@ public class OrderResponse {
             .totalAmount(order.getTotalPrice())
             .discountAmount(order.getDiscountAmount())
             .couponCode(order.getCouponCode())
+            .shippingFee(order.getShippingFee())
+            .shippingMethod(order.getShippingMethod())
             .createdAt(order.getOrderDate())
             .items(listItems)
             .build();

@@ -23,4 +23,13 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<Product> autocompleteSearch(@Param("keyword") String keyword, org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.isFeatured = true AND (p.isDeleted = false OR p.isDeleted IS NULL)")
+    List<Product> findFeaturedProducts(org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.discountPercent > 0 AND (p.isDeleted = false OR p.isDeleted IS NULL)")
+    List<Product> findSaleProducts(org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.isDeleted = false OR p.isDeleted IS NULL")
+    List<Product> findActiveProducts(org.springframework.data.domain.Pageable pageable);
 }

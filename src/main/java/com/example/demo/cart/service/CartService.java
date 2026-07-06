@@ -47,6 +47,12 @@ public class CartService {
         Optional<CartItem> existing = cartItemRepository.findByUserUserIdAndProductIdAndDetails(
                 user.getUserId(), request.getProductId(), request.getDetails());
 
+        if (product.getVariants() != null && !product.getVariants().isEmpty()) {
+            if (request.getDetails() == null || request.getDetails().trim().isEmpty()) {
+                throw new RuntimeException("Vui lòng chọn thông số sản phẩm trước khi thêm vào giỏ hàng!");
+            }
+        }
+
         if (existing.isPresent()) {
             CartItem cartItem = existing.get();
             cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
