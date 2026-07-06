@@ -18,6 +18,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import com.example.demo.order.entity.OrderDetail;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -77,6 +85,13 @@ public class AdminController {
                         Collectors.summingDouble(Order::getTotalPrice)
                 ));
 
+        // Orders by status
+        Map<String, Long> ordersByStatus = allOrders.stream()
+                .collect(Collectors.groupingBy(
+                        Order::getStatus,
+                        Collectors.counting()
+                ));
+
         // Monthly revenue for the last 6 months
         Map<String, Double> rawMonthly = allOrders.stream()
                 .filter(o -> !"Đã hủy".equals(o.getStatus()))
@@ -98,6 +113,9 @@ public class AdminController {
             temp = temp.plusMonths(1);
         }
 
+        System.out.println("DEBUG rawMonthly: " + rawMonthly);
+        System.out.println("DEBUG monthlyRevenue: " + monthlyRevenue);
+
         DashboardStatsResponse stats = DashboardStatsResponse.builder()
                 .totalRevenue(totalRevenue)
                 .totalOrders((long) allOrders.size())
@@ -106,6 +124,7 @@ public class AdminController {
                 .lowStockProducts(lowStock)
                 .recentOrders(recentOrders)
                 .revenueByStatus(revenueByStatus)
+                .ordersByStatus(ordersByStatus)
                 .monthlyRevenue(monthlyRevenue)
                 .build();
 
@@ -185,5 +204,172 @@ public class AdminController {
         product.setStock(stock);
         Product saved = productRepository.save(product);
         return ResponseEntity.ok(ProductResponse.fromEntity(saved));
+    }
+
+    // 4. Report APIs
+    @GetMapping("/reports/revenue")
+    public ResponseEntity<?> getRevenueReport(
+            @RequestParam(defaultValue = "7days") String period,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        checkAdminAccess();
+
+        LocalDateTime start;
+        LocalDateTime end = LocalDateTime.now();
+
+        if ("7days".equals(period)) {
+            start = LocalDate.now().minusDays(6).atStartOfDay();
+        } else if ("30days".equals(period)) {
+            start = LocalDate.now().minusDays(29).atStartOfDay();
+        } else if ("month".equals(period)) {
+            start = LocalDate.now().withDayOfYear(1).atStartOfDay();
+        } else if ("year".equals(period)) {
+            start = LocalDate.now().minusYears(4).withDayOfYear(1).atStartOfDay();
+        } else if ("custom".equals(period) && startDate != null && endDate != null) {
+            start = LocalDate.parse(startDate).atStartOfDay();
+            end = LocalDate.parse(endDate).atTime(LocalTime.MAX);
+        } else {
+            return ResponseEntity.badRequest().body("Tham số thời gian không hợp lệ!");
+        }
+
+        final LocalDateTime finalStart = start;
+        final LocalDateTime finalEnd = end;
+
+        List<Order> orders = orderRepository.findAll().stream()
+                .filter(o -> !o.getOrderDate().isBefore(finalStart) && !o.getOrderDate().isAfter(finalEnd))
+                .filter(o -> !"Đã hủy".equals(o.getStatus()))
+                .collect(Collectors.toList());
+
+        List<RevenueReportPoint> result = new ArrayList<>();
+
+        if ("7days".equals(period) || "30days".equals(period) || ("custom".equals(period) && java.time.temporal.ChronoUnit.DAYS.between(start.toLocalDate(), end.toLocalDate()) <= 31)) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM");
+            Map<String, List<Order>> grouped = orders.stream()
+                    .collect(Collectors.groupingBy(o -> o.getOrderDate().format(formatter)));
+
+            LocalDate temp = start.toLocalDate();
+            LocalDate last = end.toLocalDate();
+            while (!temp.isAfter(last)) {
+                String label = temp.format(formatter);
+                List<Order> dayOrders = grouped.getOrDefault(label, new ArrayList<>());
+                double rev = dayOrders.stream().mapToDouble(Order::getTotalPrice).sum();
+                result.add(new RevenueReportPoint(label, rev, (long) dayOrders.size()));
+                temp = temp.plusDays(1);
+            }
+        } else if ("month".equals(period) || ("custom".equals(period) && java.time.temporal.ChronoUnit.DAYS.between(start.toLocalDate(), end.toLocalDate()) <= 365)) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/yyyy");
+            Map<String, List<Order>> grouped = orders.stream()
+                    .collect(Collectors.groupingBy(o -> o.getOrderDate().format(formatter)));
+
+            LocalDate temp = start.toLocalDate().withDayOfMonth(1);
+            LocalDate last = end.toLocalDate().withDayOfMonth(1);
+            while (!temp.isAfter(last)) {
+                String label = temp.format(formatter);
+                List<Order> monthOrders = grouped.getOrDefault(label, new ArrayList<>());
+                double rev = monthOrders.stream().mapToDouble(Order::getTotalPrice).sum();
+                result.add(new RevenueReportPoint(label, rev, (long) monthOrders.size()));
+                temp = temp.plusMonths(1);
+            }
+        } else {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy");
+            Map<String, List<Order>> grouped = orders.stream()
+                    .collect(Collectors.groupingBy(o -> o.getOrderDate().format(formatter)));
+
+            LocalDate temp = start.toLocalDate().withDayOfYear(1);
+            LocalDate last = end.toLocalDate().withDayOfYear(1);
+            while (!temp.isAfter(last)) {
+                String label = temp.format(formatter);
+                List<Order> yearOrders = grouped.getOrDefault(label, new ArrayList<>());
+                double rev = yearOrders.stream().mapToDouble(Order::getTotalPrice).sum();
+                result.add(new RevenueReportPoint(label, rev, (long) yearOrders.size()));
+                temp = temp.plusYears(1);
+            }
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/reports/category-revenue")
+    public ResponseEntity<?> getCategoryRevenue(
+            @RequestParam(defaultValue = "7days") String period,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        checkAdminAccess();
+
+        LocalDateTime start;
+        LocalDateTime end = LocalDateTime.now();
+
+        if ("7days".equals(period)) {
+            start = LocalDate.now().minusDays(6).atStartOfDay();
+        } else if ("30days".equals(period)) {
+            start = LocalDate.now().minusDays(29).atStartOfDay();
+        } else if ("month".equals(period)) {
+            start = LocalDate.now().withDayOfYear(1).atStartOfDay();
+        } else if ("year".equals(period)) {
+            start = LocalDate.now().minusYears(4).withDayOfYear(1).atStartOfDay();
+        } else if ("custom".equals(period) && startDate != null && endDate != null) {
+            start = LocalDate.parse(startDate).atStartOfDay();
+            end = LocalDate.parse(endDate).atTime(LocalTime.MAX);
+        } else {
+            return ResponseEntity.badRequest().body("Tham số thời gian không hợp lệ!");
+        }
+
+        final LocalDateTime finalStart = start;
+        final LocalDateTime finalEnd = end;
+
+        List<Order> orders = orderRepository.findAll().stream()
+                .filter(o -> !o.getOrderDate().isBefore(finalStart) && !o.getOrderDate().isAfter(finalEnd))
+                .filter(o -> !"Đã hủy".equals(o.getStatus()))
+                .collect(Collectors.toList());
+
+        Map<Integer, CategoryRevenuePoint> categoryStats = new HashMap<>();
+
+        for (Order order : orders) {
+            if (order.getOrderDetails() != null) {
+                for (OrderDetail detail : order.getOrderDetails()) {
+                    Product product = detail.getProduct();
+                    if (product != null && product.getCategory() != null) {
+                        Integer catId = product.getCategoryId();
+                        String catName = product.getCategory().getName();
+                        double detailRevenue = detail.getQuantity() * detail.getUnitPrice();
+                        
+                        CategoryRevenuePoint point = categoryStats.computeIfAbsent(catId, k -> CategoryRevenuePoint.builder()
+                                .categoryId(catId)
+                                .categoryName(catName)
+                                .revenue(0.0)
+                                .quantitySold(0L)
+                                .build());
+                        
+                        point.setRevenue(point.getRevenue() + detailRevenue);
+                        point.setQuantitySold(point.getQuantitySold() + detail.getQuantity());
+                    }
+                }
+            }
+        }
+
+        return ResponseEntity.ok(new ArrayList<>(categoryStats.values()));
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class RevenueReportPoint {
+        private String label;
+        private Double revenue;
+        private Long orderCount;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class CategoryRevenuePoint {
+        private Integer categoryId;
+        private String categoryName;
+        private Double revenue;
+        private Long quantitySold;
     }
 }
