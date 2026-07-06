@@ -107,4 +107,24 @@ public class AdminUserServiceImpl implements AdminUserService {
         User saved = userRepository.save(user);
         return UserResponse.fromEntity(saved);
     }
+
+    @Override
+    @Transactional
+    public UserResponse resetPassword(Integer userId, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+
+        LocalAccount localAccount = localAccountRepository.findById(userId)
+                .orElseGet(() -> {
+                    LocalAccount newAcc = new LocalAccount();
+                    newAcc.setUser(user);
+                    newAcc.setIsEmailVerified(true);
+                    return newAcc;
+                });
+
+        localAccount.setPasswordHash(passwordEncoder.encode(newPassword));
+        localAccountRepository.save(localAccount);
+
+        return UserResponse.fromEntity(user);
+    }
 }

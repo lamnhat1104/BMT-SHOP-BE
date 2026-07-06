@@ -29,6 +29,16 @@ public class AuthController {
     private final UserRepository userRepository;
     private final SocialAccountRepository socialAccountRepository;
 
+    @GetMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmailExists(@RequestParam String email) {
+        return ResponseEntity.ok(userRepository.findByEmail(email.trim().toLowerCase()).isPresent());
+    }
+
+    @GetMapping("/check-phone")
+    public ResponseEntity<Boolean> checkPhoneExists(@RequestParam String phone) {
+        return ResponseEntity.ok(userRepository.findByPhone(phone.trim()).isPresent());
+    }
+
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
         try {
@@ -104,6 +114,11 @@ public class AuthController {
             String email = principal.getAttribute("email");
             user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Lỗi hệ thống sau khi login Social"));
+        }
+
+        if (user.getIsActive() == null || !user.getIsActive()) {
+            response.sendRedirect("http://localhost:5173/login?error=" + URLEncoder.encode("Tài khoản đã bị khóa", StandardCharsets.UTF_8));
+            return;
         }
 
         String token = jwtService.generateToken(user.getEmail());

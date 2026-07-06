@@ -38,4 +38,15 @@ public class AdminUserController {
     public ResponseEntity<UserResponse> toggleUserStatus(@PathVariable Integer id) {
         return ResponseEntity.ok(adminUserService.toggleUserStatus(id));
     }
+
+    @PostMapping("/{id}/reset-password")
+    public ResponseEntity<UserResponse> resetPassword(
+            @PathVariable Integer id,
+            @RequestBody java.util.Map<String, String> requestBody) {
+        String newPassword = requestBody.get("newPassword");
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            throw new RuntimeException("Mật khẩu mới không được để trống");
+        }
+        return ResponseEntity.ok(adminUserService.resetPassword(id, newPassword));
+    }
 }

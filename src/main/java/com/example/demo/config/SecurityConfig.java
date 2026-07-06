@@ -57,6 +57,36 @@ public class SecurityConfig {
             .oauth2Login(oauth -> oauth
                     .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                     .defaultSuccessUrl("/api/auth/oauth2-success", true)
+                    .failureHandler((request, response, exception) -> {
+                        System.out.println("OAuth2 Login Failure: " + exception.getClass().getName() + " - " + exception.getMessage());
+                        if (exception.getCause() != null) {
+                            System.out.println("OAuth2 Failure Cause: " + exception.getCause().getMessage());
+                        }
+                        
+                        String errMsg = exception.getMessage() != null ? exception.getMessage() : "";
+                        if (exception.getCause() != null && exception.getCause().getMessage() != null) {
+                            errMsg += " " + exception.getCause().getMessage();
+                        }
+                        
+                        if (exception instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException) {
+                            org.springframework.security.oauth2.core.OAuth2Error oauth2Error = 
+                                ((org.springframework.security.oauth2.core.OAuth2AuthenticationException) exception).getError();
+                            if (oauth2Error != null) {
+                                errMsg += " " + oauth2Error.getErrorCode() + " " + oauth2Error.getDescription();
+                                System.out.println("OAuth2Error Details: Code=" + oauth2Error.getErrorCode() + ", Desc=" + oauth2Error.getDescription());
+                            }
+                        }
+
+                        boolean isLocked = errMsg.toLowerCase().contains("khóa") 
+                                        || errMsg.toLowerCase().contains("khoa") 
+                                        || errMsg.toLowerCase().contains("lock");
+
+                        String encodedError = java.net.URLEncoder.encode(
+                            isLocked ? "Tài khoản của bạn đã bị khóa!" : "Đăng nhập thất bại!",
+                            "UTF-8"
+                        );
+                        response.sendRedirect("http://localhost:5173/login?error=" + encodedError);
+                    })
             )
             .exceptionHandling(exceptions -> exceptions
                     .defaultAuthenticationEntryPointFor(
