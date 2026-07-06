@@ -112,7 +112,8 @@ public class CouponServiceImpl implements CouponService {
                     .build();
         }
 
-        if (coupon.getMaxUses() != null && coupon.getUsedCount() >= coupon.getMaxUses()) {
+        int usedCount = coupon.getUsedCount() != null ? coupon.getUsedCount() : 0;
+        if (coupon.getMaxUses() != null && usedCount >= coupon.getMaxUses()) {
             return com.example.demo.coupon.dto.ApplyCouponResponse.builder()
                     .isValid(false)
                     .message("Mã khuyến mãi đã hết lượt sử dụng")

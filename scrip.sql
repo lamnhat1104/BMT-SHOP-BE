@@ -145,9 +145,15 @@ DROP TABLE IF EXISTS `coupons`;
 CREATE TABLE `coupons`  (
   `coupon_id` int NOT NULL AUTO_INCREMENT,
   `code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `discount_percent` int NOT NULL,
+  `discount_percent` int NULL,
   `expired_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   `is_active` tinyint(1) NULL DEFAULT 1,
+  `discount_type` enum('FIXED_AMOUNT','FREE_SHIPPING','PERCENTAGE') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `discount_value` double NOT NULL,
+  `max_discount_amount` double DEFAULT NULL,
+  `max_uses` int DEFAULT NULL,
+  `min_order_value` double DEFAULT NULL,
+  `used_count` int DEFAULT 0,
   PRIMARY KEY (`coupon_id`) USING BTREE,
   UNIQUE INDEX `code`(`code` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
