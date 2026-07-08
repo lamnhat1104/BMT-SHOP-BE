@@ -30,6 +30,21 @@ public class CartService {
                 .orElseThrow(() -> new RuntimeException("Vui lòng đăng nhập để thực hiện thao tác này!"));
     }
 
+    private int getAvailableStock(Product product, String details) {
+        int stock = product.getStock() != null ? product.getStock() : 0;
+        String safeDetails = details != null ? details : "";
+        if (product.getVariants() != null && !product.getVariants().isEmpty()) {
+            for (com.example.demo.product.entity.ProductVariant v : product.getVariants()) {
+                if (safeDetails.contains(v.getSize() != null ? v.getSize() : "") &&
+                    safeDetails.contains(v.getColor() != null ? v.getColor() : "") &&
+                    safeDetails.contains(v.getWeight() != null ? v.getWeight() : "")) {
+                    return v.getStock() != null ? v.getStock() : 0;
+                }
+            }
+        }
+        return stock;
+    }
+
     @Transactional(readOnly = true)
     public List<CartItemResponse> getCart() {
         User user = getCurrentUser();
@@ -53,11 +68,19 @@ public class CartService {
             }
         }
 
+        int availableStock = getAvailableStock(product, request.getDetails());
+
         if (existing.isPresent()) {
             CartItem cartItem = existing.get();
+            if (cartItem.getQuantity() + request.getQuantity() > availableStock) {
+                throw new RuntimeException("Số lượng yêu cầu vượt quá sản phẩm có sẵn trong kho!");
+            }
             cartItem.setQuantity(cartItem.getQuantity() + request.getQuantity());
             cartItemRepository.save(cartItem);
         } else {
+            if (request.getQuantity() > availableStock) {
+                throw new RuntimeException("Số lượng yêu cầu vượt quá sản phẩm có sẵn trong kho!");
+            }
             CartItem cartItem = CartItem.builder()
                     .user(user)
                     .product(product)
@@ -74,6 +97,11 @@ public class CartService {
         User user = getCurrentUser();
         CartItem cartItem = cartItemRepository.findByUserUserIdAndProductIdAndDetails(user.getUserId(), productId, details)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm trong giỏ hàng!"));
+
+        int availableStock = getAvailableStock(cartItem.getProduct(), details);
+        if (quantity > availableStock) {
+            throw new RuntimeException("Số lượng yêu cầu vượt quá sản phẩm có sẵn trong kho!");
+        }
 
         cartItem.setQuantity(quantity);
         cartItemRepository.save(cartItem);

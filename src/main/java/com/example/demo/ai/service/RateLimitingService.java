@@ -19,8 +19,8 @@ public class RateLimitingService {
     }
 
     private Bucket newBucket(String ip) {
-        // Cho phép 5 requests mỗi phút
-        Bandwidth limit = Bandwidth.classic(5, Refill.greedy(5, Duration.ofMinutes(1)));
+        // Cho phép 30 requests mỗi phút
+        Bandwidth limit = Bandwidth.classic(30, Refill.greedy(30, Duration.ofMinutes(1)));
         return Bucket.builder()
                 .addLimit(limit)
                 .build();
